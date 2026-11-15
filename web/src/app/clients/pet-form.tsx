@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { BreedPicker } from "@/components/breed-picker";
 import { CircleAlert, HeartPulse, PawPrint, TriangleAlert } from "lucide-react";
 import { SEX_LABELS, SPECIES_LABELS, type PetSex, type PetSpecies } from "@/lib/client-labels";
 import { savePet, type FormState } from "./actions";
@@ -16,6 +17,7 @@ type Props = {
 export function PetForm({ clientId, petId, defaults = {}, today = "" }: Props) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(savePet, undefined);
   const v = state?.values ?? defaults;
+  const [species, setSpecies] = useState<PetSpecies>((v.species as PetSpecies) || "dog");
 
   return (
     <form action={formAction} className="auth-form record-form" noValidate>
@@ -32,17 +34,17 @@ export function PetForm({ clientId, petId, defaults = {}, today = "" }: Props) {
           </label>
           <label className="field" htmlFor="pet-species">
             <span>Species</span>
-            <select id="pet-species" name="species" defaultValue={v.species ?? "dog"}>
+            <select id="pet-species" name="species" value={species} onChange={(e) => setSpecies(e.target.value as PetSpecies)}>
               {(Object.keys(SPECIES_LABELS) as PetSpecies[]).map((s) => <option key={s} value={s}>{SPECIES_LABELS[s]}</option>)}
             </select>
           </label>
         </div>
 
         <div className="field-row">
-          <label className="field" htmlFor="pet-breed">
-            <span>Breed</span>
-            <input id="pet-breed" name="breed" maxLength={80} autoComplete="off" defaultValue={v.breed} />
-          </label>
+          <div className="field">
+            <label htmlFor="pet-breed"><span>Breed</span></label>
+            <BreedPicker id="pet-breed" name="breed" species={species} defaultValue={v.breed} />
+          </div>
           <label className="field" htmlFor="pet-color">
             <span>Color</span>
             <input id="pet-color" name="color" maxLength={80} autoComplete="off" defaultValue={v.color} />

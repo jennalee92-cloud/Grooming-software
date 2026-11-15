@@ -443,6 +443,18 @@ h1 em { color: #ac6d58; font-weight: 400; }
 .visit-charges td:last-child { color: var(--forest-deep); font-weight: 650; text-align: right; white-space: nowrap; }
 .visit-charges s { margin-right: 4px; color: #a1a9a2; font-weight: 500; }
 .visit-charges tfoot th, .visit-charges tfoot td { border-top: 1px solid #e5e3da; padding-top: 6px; font-weight: 750; }
+/* ---------- Breed picker ---------- */
+.field > label > span { color: #3f4b43; font-size: 12.5px; font-weight: 650; }
+.breed-picker { position: relative; }
+.field .breed-picker input { padding-right: 40px; }
+.breed-toggle { position: absolute; top: 0; right: 0; display: grid; width: 40px; height: 44px; place-items: center; border: 0; background: transparent; color: #6f7a72; cursor: pointer; }
+.breed-list { position: absolute; z-index: 20; top: calc(100% + 4px); right: 0; left: 0; max-height: 300px; margin: 0; overflow-y: auto; border: 1px solid #d9ddd2; border-radius: 8px; background: #fffefa; padding: 4px 0; list-style: none; box-shadow: 0 14px 30px rgba(41, 79, 64, 0.14); }
+.breed-list ul { margin: 0; padding: 0; list-style: none; }
+.breed-group { position: sticky; top: -4px; display: block; background: #f3f1ea; padding: 6px 12px; color: #6f7a72; font-size: 10.5px; font-weight: 750; letter-spacing: 0.06em; text-transform: uppercase; }
+.breed-list [role="option"] { padding: 8px 12px; color: var(--ink); cursor: pointer; font-size: 14px; }
+.breed-list [role="option"].is-active { background: #e6eee6; color: var(--forest-deep); }
+.breed-empty { padding: 10px 12px; color: #7e887f; font-size: 13px; }
+
 /* ---------- Vaccinations ---------- */
 .caution-banner-urgent { border-color: #d64545; border-left-width: 5px; background: #fdecec; color: #b42318; }
 .caution-banner-urgent strong { color: #b42318; }

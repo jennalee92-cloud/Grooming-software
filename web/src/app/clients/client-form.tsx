@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { BreedPicker } from "@/components/breed-picker";
 import { CircleAlert, Dog } from "lucide-react";
 import { CONTACT_LABELS, SPECIES_LABELS, type ContactMethod, type PetSpecies } from "@/lib/client-labels";
 import { saveClient, type FormState } from "./actions";
@@ -17,6 +18,7 @@ export function ClientForm({ clientId, locations, defaults = {}, today = "" }: P
   const [state, formAction, pending] = useActionState<FormState, FormData>(saveClient, undefined);
   const v = state?.values ?? defaults;
   const isNew = !clientId;
+  const [petSpecies, setPetSpecies] = useState<PetSpecies>((v.petSpecies as PetSpecies) || "dog");
 
   return (
     <form action={formAction} className="auth-form record-form" noValidate>
@@ -96,15 +98,15 @@ export function ClientForm({ clientId, locations, defaults = {}, today = "" }: P
             </label>
             <label className="field" htmlFor="pet-species">
               <span>Species</span>
-              <select id="pet-species" name="petSpecies" defaultValue={v.petSpecies ?? "dog"}>
+              <select id="pet-species" name="petSpecies" value={petSpecies} onChange={(e) => setPetSpecies(e.target.value as PetSpecies)}>
                 {(Object.keys(SPECIES_LABELS) as PetSpecies[]).map((s) => <option key={s} value={s}>{SPECIES_LABELS[s]}</option>)}
               </select>
             </label>
           </div>
-          <label className="field" htmlFor="pet-breed">
-            <span>Breed</span>
-            <input id="pet-breed" name="petBreed" maxLength={80} autoComplete="off" defaultValue={v.petBreed} />
-          </label>
+          <div className="field">
+            <label htmlFor="pet-breed"><span>Breed</span></label>
+            <BreedPicker id="pet-breed" name="petBreed" species={petSpecies} defaultValue={v.petBreed} />
+          </div>
         </fieldset>
       )}
       {isNew && <RabiesFields values={v} today={today} />}
