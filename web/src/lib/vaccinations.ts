@@ -47,6 +47,26 @@ export const getPetVaccinations = cache(async (workspace: Workspace, petId: stri
   };
 });
 
+// For a household's pets: pet id → names of vaccines whose latest record has expired.
+export async function getExpiredByPet(workspace: Workspace, petIds: string[], today: string) {
+  const expired = new Map<string, string[]>();
+  if (petIds.length === 0) return expired;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("pet_vaccinations").select("pet_id, vaccine, expires_on")
+    .eq("organization_id", workspace.organizationId).in("pet_id", petIds).is("removed_at", null)
+    .order("expires_on", { ascending: false });
+  if (error) throw new Error(`Could not load vaccinations: ${error.message}`);
+
+  const seen = new Set<string>();
+  for (const v of data) {
+    const key = `${v.pet_id}:${vaccineKey(v.vaccine)}`;
+    if (seen.has(key)) continue; // an earlier record that a renewal replaced
+    seen.add(key);
+    if (v.expires_on < today) expired.set(v.pet_id, [...(expired.get(v.pet_id) ?? []), v.vaccine]);
+  }
+  return expired;
+}
+
 export async function getVaccinesDue(workspace: Workspace) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("vaccines_due", {

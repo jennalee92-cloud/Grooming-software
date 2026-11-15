@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ChevronRight, CircleAlert, CircleCheck, Dog, Home, PencilLine, Plus, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ChevronRight, CircleAlert, CircleCheck, Dog, Home, PencilLine, Plus, Syringe, TriangleAlert } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { AppShell } from "@/components/app-shell";
 import { CONTACT_LABELS, SPECIES_LABELS, clientName, getClientWithPets, petAge } from "@/lib/clients";
 import { requireWorkspace } from "@/lib/dal";
 import { UUID_PATTERN } from "@/lib/db-errors";
 import { canArchiveClients, canEditClients } from "@/lib/roles";
+import { getExpiredByPet } from "@/lib/vaccinations";
+import { todayIn } from "@/lib/visits";
 import { setClientArchived } from "../actions";
 
 export const metadata: Metadata = { title: "Client | Grooming Desk" };
@@ -29,6 +31,8 @@ export default async function ClientPage({ params, searchParams }: PageProps<"/c
   const canArchive = canArchiveClients(workspace.role);
   const activePets = pets.filter((p) => p.archived_at === null);
   const archivedPets = pets.filter((p) => p.archived_at !== null);
+  const homeLocation = workspace.locations.find((l) => l.id === client.home_location_id) ?? workspace.locations[0];
+  const expiredByPet = await getExpiredByPet(workspace, activePets.map((p) => p.id), todayIn(homeLocation?.timezone));
   const home = client.home_location_id
     ? workspace.locations.find((l) => l.id === client.home_location_id)?.name ?? "Another location"
     : null;
@@ -93,11 +97,13 @@ export default async function ClientPage({ params, searchParams }: PageProps<"/c
             <ul className="pet-cards">
               {activePets.map((p) => {
                 const facts = [SPECIES_LABELS[p.species], p.breed, petAge(p.birth_date), p.weight_lbs ? `${p.weight_lbs} lbs` : null].filter(Boolean);
+                const expired = expiredByPet.get(p.id);
                 return (
                   <li key={p.id}>
-                    <Link href={`/clients/${client.id}/pets/${p.id}`} className={`pet-card${p.handle_with_care ? " is-caution" : ""}`}>
+                    <Link href={`/clients/${client.id}/pets/${p.id}`} className={`pet-card${expired ? " is-expired" : p.handle_with_care ? " is-caution" : ""}`}>
                       <span className="pet-card-main">
                         <strong>{p.name}</strong>
+                        {expired && <span className="vax-expired-flag"><Syringe size={12} /> {expired.join(", ")} expired</span>}
                         <small>{facts.join(" · ")}</small>
                         {p.handle_with_care && <span className="caution-line"><TriangleAlert size={13} /> Handle with care{p.temperament ? `: ${p.temperament}` : ""}</span>}
                         {p.allergies && <span className="allergy-line">Allergies: {p.allergies}</span>}

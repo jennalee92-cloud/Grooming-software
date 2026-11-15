@@ -337,6 +337,8 @@ h1 em { color: #ac6d58; font-weight: 400; }
 .pet-card { display: grid; grid-template-columns: minmax(0, 1fr) 18px; align-items: center; gap: 8px; height: 100%; border: 1px solid var(--line); border-radius: 9px; background: var(--paper); padding: 14px; transition: border-color 140ms ease; }
 .pet-card:hover { border-color: #bccbbd; }
 .pet-card.is-caution { border-color: #ecc89a; background: #fdf6ec; }
+.pet-card.is-expired { border-color: #d92d20; border-left-width: 4px; background: #fdecec; }
+.vax-expired-flag { display: inline-flex; align-items: center; gap: 4px; justify-self: start; margin: 3px 0 2px; border-radius: 999px; background: #d92d20; padding: 2px 9px; color: #fff; font-size: 11.5px; font-weight: 700; }
 .pet-card-main { display: grid; min-width: 0; gap: 3px; }
 .pet-card-main strong { color: var(--ink); font-family: var(--font-display); font-size: 20px; font-weight: 400; }
 .pet-card-main small { color: #6f7a72; font-size: 12.5px; }
@@ -442,7 +444,8 @@ h1 em { color: #ac6d58; font-weight: 400; }
 .visit-charges s { margin-right: 4px; color: #a1a9a2; font-weight: 500; }
 .visit-charges tfoot th, .visit-charges tfoot td { border-top: 1px solid #e5e3da; padding-top: 6px; font-weight: 750; }
 /* ---------- Vaccinations ---------- */
-.caution-banner-urgent { border-color: #e6b3a5; background: #f9e9e3; color: #8c3f2c; }
+.caution-banner-urgent { border-color: #d64545; border-left-width: 5px; background: #fdecec; color: #b42318; }
+.caution-banner-urgent strong { color: #b42318; }
 .vax-alert-list { margin: 4px 0 0; padding-left: 18px; font-size: 13.5px; }
 .vax-list { display: grid; margin: 0; padding: 0; list-style: none; }
 .vax-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; border-top: 1px solid #efefe9; padding: 12px 0; }
@@ -454,9 +457,15 @@ a.vax-copy:hover strong { color: var(--forest); }
 .vax-status { display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; padding: 3px 10px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
 .vax-current { background: var(--sage); color: var(--forest-deep); }
 .vax-due_soon { background: #f8e3c9; color: #7a4a17; }
-.vax-expired { background: #f6e4de; color: #8c3f2c; }
+.vax-expired { background: #d92d20; color: #fff; }
+/* Expired: the whole row turns red so it can't be missed. */
+.vax-list li.vax-row-expired { margin: 0 -12px; border-top-color: transparent; border-left: 4px solid #d92d20; border-radius: 8px; background: #fdecec; padding-right: 12px; padding-left: 8px; }
+.vax-list li.vax-row-expired + li { border-top-color: transparent; }
+.vax-row-expired .vax-copy strong, .vax-row-expired .vax-dates { color: #b42318; }
+.vax-row-expired .vax-dates { font-weight: 650; }
+.vax-list li.vax-row-due_soon .vax-dates { color: #9a5b13; font-weight: 600; }
 .vax-proof { display: inline-flex; align-items: center; gap: 4px; color: #5d7a66; font-size: 12px; font-weight: 650; }
-.vax-missing { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: #8c3f2c; font-size: 13px; font-weight: 650; }
+.vax-missing { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: #b42318; font-size: 13px; font-weight: 700; }
 .vax-due { margin-top: 22px; animation: enter 550ms 80ms ease both; }
 .quick-dates { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: -6px; }
 .quick-dates small { color: #7e887f; font-size: 12px; }

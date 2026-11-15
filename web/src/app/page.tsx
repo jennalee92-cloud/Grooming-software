@@ -112,10 +112,10 @@ export default async function Home() {
               {vaccinesDue.slice(0, 12).map((v) => {
                 const status = vaccineStatus(v.expires_on, today);
                 return (
-                  <li key={`${v.pet_id}-${v.vaccine}`}>
+                  <li key={`${v.pet_id}-${v.vaccine}`} className={`vax-row-${status}`}>
                     <Link href={`/clients/${v.client_id}/pets/${v.pet_id}#vaccinations`} className="vax-copy">
                       <strong>{v.pet_name} · {v.vaccine}</strong>
-                      <small>{`${v.client_first_name} ${v.client_last_name}`.trim()} · {status === "expired" ? "expired" : "expires"} {vaccineDate(v.expires_on)}</small>
+                      <small className="vax-dates">{`${v.client_first_name} ${v.client_last_name}`.trim()} · {status === "expired" ? "expired" : "expires"} {vaccineDate(v.expires_on)}</small>
                     </Link>
                     <span className={`vax-status vax-${status}`}>{status === "expired" ? "Expired" : "Due soon"}</span>
                   </li>

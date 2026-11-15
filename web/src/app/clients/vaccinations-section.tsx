@@ -43,10 +43,10 @@ export function VaccinationsSection({ vaccines, basePath, canEdit }: Props) {
       ) : (
         <ul className="vax-list">
           {current.map((v) => (
-            <li key={v.id}>
+            <li key={v.id} className={`vax-row-${v.status}`}>
               <div className="vax-copy">
                 <strong>{v.vaccine}</strong>
-                <small>
+                <small className="vax-dates">
                   {v.status === "expired" ? "Expired" : "Expires"} {vaccineDate(v.expires_on)}
                   {v.given_on && ` · given ${vaccineDate(v.given_on)}`}
                 </small>
