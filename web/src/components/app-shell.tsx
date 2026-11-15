@@ -1,18 +1,48 @@
 import Link from "next/link";
-import { ArrowUpRight, ClipboardCheck, Dog, FileText, LayoutDashboard, LogOut, Scissors, Settings2 } from "lucide-react";
+import {
+  ArrowUpRight,
+  ChevronsUpDown,
+  ClipboardCheck,
+  Dog,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Scissors,
+  Settings2,
+  Users,
+} from "lucide-react";
 import { logOut } from "@/app/(auth)/actions";
-import { ROLE_LABELS, type Workspace } from "@/lib/dal";
+import { switchWorkspace } from "@/app/workspace-actions";
+import { getWorkspaces, ROLE_LABELS, type Workspace } from "@/lib/dal";
 
 type Props = {
   workspace: Workspace;
-  active: "overview" | "setup";
+  active: "overview" | "team" | "setup";
   crumb: string;
   topbar?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export function AppShell({ workspace, active, crumb, topbar, children }: Props) {
-  const initial = workspace.organizationName.trim().charAt(0).toUpperCase() || "G";
+const initialOf = (name: string) => name.trim().charAt(0).toUpperCase() || "G";
+
+export async function AppShell({ workspace, active, crumb, topbar, children }: Props) {
+  const others = (await getWorkspaces()).filter((w) => w.organizationId !== workspace.organizationId);
+
+  const current = (
+    <>
+      <span className="workspace-avatar">{initialOf(workspace.organizationName)}</span>
+      <span className="workspace-copy">
+        <strong>{workspace.organizationName}</strong>
+        <small>{ROLE_LABELS[workspace.role]} account</small>
+      </span>
+    </>
+  );
+
+  const navLink = (key: Props["active"], href: string, icon: React.ReactNode, label: string) => (
+    <Link className={`nav-item${active === key ? " active" : ""}`} href={href} aria-current={active === key ? "page" : undefined}>
+      {icon}<span>{label}</span>
+    </Link>
+  );
 
   return (
     <div className="app-shell">
@@ -22,22 +52,37 @@ export function AppShell({ workspace, active, crumb, topbar, children }: Props) 
           <span className="brand-name">grooming<span>desk</span></span>
         </Link>
 
-        <div className="workspace-switcher">
-          <span className="workspace-avatar">{initial}</span>
-          <span className="workspace-copy">
-            <strong>{workspace.organizationName}</strong>
-            <small>{ROLE_LABELS[workspace.role]} account</small>
-          </span>
-        </div>
+        {others.length === 0 ? (
+          <div className="workspace-switcher">{current}</div>
+        ) : (
+          <details className="workspace-menu">
+            <summary className="workspace-switcher" aria-label="Switch business">
+              {current}
+              <ChevronsUpDown size={15} className="workspace-chevron" />
+            </summary>
+            <div className="workspace-options">
+              <span className="nav-caption">Switch to</span>
+              {others.map((w) => (
+                <form key={w.organizationId} action={switchWorkspace}>
+                  <input type="hidden" name="organizationId" value={w.organizationId} />
+                  <button type="submit" className="workspace-option">
+                    <span className="workspace-avatar">{initialOf(w.organizationName)}</span>
+                    <span className="workspace-copy">
+                      <strong>{w.organizationName}</strong>
+                      <small>{ROLE_LABELS[w.role]}</small>
+                    </span>
+                  </button>
+                </form>
+              ))}
+            </div>
+          </details>
+        )}
 
         <nav className="side-nav" aria-label="Main navigation">
           <span className="nav-caption">Workspace</span>
-          <Link className={`nav-item${active === "overview" ? " active" : ""}`} href="/" aria-current={active === "overview" ? "page" : undefined}>
-            <LayoutDashboard size={18} /><span>Overview</span>
-          </Link>
-          <Link className={`nav-item${active === "setup" ? " active" : ""}`} href="/setup" aria-current={active === "setup" ? "page" : undefined}>
-            <Settings2 size={18} /><span>Workspace setup</span>
-          </Link>
+          {navLink("overview", "/", <LayoutDashboard size={18} />, "Overview")}
+          {navLink("team", "/team", <Users size={18} />, "Team")}
+          {navLink("setup", "/setup", <Settings2 size={18} />, "Workspace setup")}
           <span className="nav-caption nav-caption-spaced">Coming into focus</span>
           <div className="nav-preview"><Dog size={18} /><span>Clients &amp; pets</span></div>
           <div className="nav-preview"><ClipboardCheck size={18} /><span>Daily operations</span></div>

@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -76,6 +76,98 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "audit_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invitation_locations: {
+        Row: {
+          invitation_id: string
+          location_id: string
+          organization_id: string
+        }
+        Insert: {
+          invitation_id: string
+          location_id: string
+          organization_id: string
+        }
+        Update: {
+          invitation_id?: string
+          location_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitation_locations_organization_id_invitation_id_fkey"
+            columns: ["organization_id", "invitation_id"]
+            isOneToOne: false
+            referencedRelation: "invitations"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "invitation_locations_organization_id_location_id_fkey"
+            columns: ["organization_id", "location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          all_locations: boolean
+          created_at: string
+          declined_at: string | null
+          display_name: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["member_role"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          all_locations?: boolean
+          created_at?: string
+          declined_at?: string | null
+          display_name?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          revoked_at?: string | null
+          role: Database["public"]["Enums"]["member_role"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          all_locations?: boolean
+          created_at?: string
+          declined_at?: string | null
+          display_name?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["member_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -242,6 +334,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_invitation: { Args: { p_invitation_id: string }; Returns: string }
       create_organization: {
         Args: {
           p_display_name?: string
@@ -250,6 +343,63 @@ export type Database = {
           p_timezone?: string
         }
         Returns: string
+      }
+      decline_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: undefined
+      }
+      invite_member: {
+        Args: {
+          p_all_locations?: boolean
+          p_display_name?: string
+          p_email: string
+          p_location_ids?: string[]
+          p_organization_id: string
+          p_role: Database["public"]["Enums"]["member_role"]
+        }
+        Returns: string
+      }
+      my_invitations: {
+        Args: never
+        Returns: {
+          expires_at: string
+          id: string
+          invited_by_name: string
+          organization_id: string
+          organization_name: string
+          role: Database["public"]["Enums"]["member_role"]
+        }[]
+      }
+      revoke_invitation: {
+        Args: { p_invitation_id: string }
+        Returns: undefined
+      }
+      set_member_active: {
+        Args: { p_active: boolean; p_member_id: string }
+        Returns: undefined
+      }
+      team_directory: {
+        Args: { p_organization_id: string }
+        Returns: {
+          all_locations: boolean
+          display_name: string
+          email: string
+          joined_at: string
+          location_ids: string[]
+          member_id: string
+          role: Database["public"]["Enums"]["member_role"]
+          status: Database["public"]["Enums"]["member_status"]
+          user_id: string
+        }[]
+      }
+      update_member: {
+        Args: {
+          p_all_locations?: boolean
+          p_location_ids?: string[]
+          p_member_id: string
+          p_role: Database["public"]["Enums"]["member_role"]
+        }
+        Returns: undefined
       }
     }
     Enums: {

@@ -1,13 +1,19 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
+import type { MemberRole } from "@/lib/roles";
 
 // Data access layer: every page and action gets the signed-in user and
 // their businesses from here. Queries run as the user, so the database's
 // security rules decide what comes back.
 
-export type MemberRole = Database["public"]["Enums"]["member_role"];
+export { ROLE_LABELS, type MemberRole } from "@/lib/roles";
+
+// Remembers which business the person last switched to. It only picks
+// among businesses they already belong to; it grants nothing.
+export const WORKSPACE_COOKIE = "gd_workspace";
 
 export type Workspace = {
   organizationId: string;
@@ -17,16 +23,18 @@ export type Workspace = {
   locations: { id: string; name: string; timezone: string }[];
 };
 
-export const ROLE_LABELS: Record<MemberRole, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  manager: "Manager",
-  groomer: "Groomer",
-  bather: "Bather",
-  front_desk: "Front desk",
+export type PendingInvitation = {
+  id: string;
+  organizationName: string;
+  role: MemberRole;
+  invitedByName: string | null;
+  expiresAt: string;
 };
 
 export const getCurrentUser = cache(async () => {
+  // Session checks compare token expiry with the current time, so mark
+  // this as request-time work before Supabase reads the clock.
+  await connection();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error) return null;
@@ -79,5 +87,21 @@ export const getWorkspaces = cache(async (): Promise<Workspace[]> => {
 export const requireWorkspace = cache(async (): Promise<Workspace> => {
   const workspaces = await getWorkspaces();
   if (workspaces.length === 0) redirect("/onboarding");
-  return workspaces[0];
+  const chosen = (await cookies()).get(WORKSPACE_COOKIE)?.value;
+  return workspaces.find((w) => w.organizationId === chosen) ?? workspaces[0];
+});
+
+// Open invitations sent to the signed-in person's confirmed email.
+export const getMyInvitations = cache(async (): Promise<PendingInvitation[]> => {
+  await requireUser();
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("my_invitations");
+  if (error) throw new Error(`Could not load your invitations: ${error.message}`);
+  return data.map((i) => ({
+    id: i.id,
+    organizationName: i.organization_name,
+    role: i.role,
+    invitedByName: i.invited_by_name,
+    expiresAt: i.expires_at,
+  }));
 });

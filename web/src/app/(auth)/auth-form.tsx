@@ -9,9 +9,10 @@ type Props = {
   mode: "login" | "signup";
   action: (state: AuthFormState, formData: FormData) => Promise<AuthFormState>;
   notice?: string;
+  defaultEmail?: string;
 };
 
-export function AuthForm({ mode, action, notice }: Props) {
+export function AuthForm({ mode, action, notice, defaultEmail }: Props) {
   const [state, formAction, pending] = useActionState(action, undefined);
   const isSignup = mode === "signup";
 
@@ -30,7 +31,7 @@ export function AuthForm({ mode, action, notice }: Props) {
           type="email"
           autoComplete="email"
           required
-          defaultValue={state?.email}
+          defaultValue={state?.email ?? defaultEmail}
           placeholder="you@yoursalon.com"
         />
       </label>

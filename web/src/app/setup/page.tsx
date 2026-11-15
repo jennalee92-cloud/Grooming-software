@@ -29,7 +29,7 @@ export default async function SetupPage() {
                 <li key={l.id}><strong>{l.name}</strong><span>{l.timezone.replace(/_/g, " ")}</span></li>
               ))}
             </ul>
-            <p>You&apos;re signed in as <strong>{ROLE_LABELS[workspace.role]}</strong>. Adding and editing locations from here is coming with team management.</p>
+            <p>You&apos;re signed in as <strong>{ROLE_LABELS[workspace.role]}</strong>. Adding and editing locations from here is coming soon.</p>
           </div>
         </section>
 
@@ -41,13 +41,13 @@ export default async function SetupPage() {
           </div>
           <div className="setup-step is-done">
             <span className="setup-step-number"><Check size={14} /></span>
-            <div><h3>Business and first location created</h3><p>You&apos;re the owner of {workspace.organizationName}.</p></div>
+            <div><h3>Business and first location created</h3><p>{workspace.role === "owner" ? `You're the owner of ${workspace.organizationName}.` : `You're on the ${workspace.organizationName} team as ${ROLE_LABELS[workspace.role]}.`}</p></div>
             <span className="step-label">DONE</span>
           </div>
-          <div className="setup-step">
-            <span className="setup-step-number">03</span>
-            <div><h3>Invite your team</h3><p>Send invitations by email, choose each person&apos;s role, and pick which locations they can see.</p></div>
-            <span className="step-label">COMING NEXT</span>
+          <div className="setup-step is-done">
+            <span className="setup-step-number"><Check size={14} /></span>
+            <div><h3>Team invitations and roles</h3><p>Invite people, choose each person&apos;s role, and pick which locations they can see. <Link href="/team" className="text-link">Open team</Link></p></div>
+            <span className="step-label">READY</span>
           </div>
         </div>
 

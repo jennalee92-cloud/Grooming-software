@@ -60,3 +60,6 @@ Get-ChildItem (Join-Path $root 'supabase\tests\database') -Filter '*.test.sql' |
 }
 
 if ($failed) { exit 1 }
+# Each run ends in a deliberate error (that's what rolls it back), so don't
+# pass the CLI's exit code through when every test passed.
+exit 0
