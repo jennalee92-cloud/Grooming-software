@@ -17,6 +17,7 @@ export const WORKSPACE_COOKIE = "gd_workspace";
 
 export type Workspace = {
   organizationId: string;
+  memberId: string;
   organizationName: string;
   role: MemberRole;
   displayName: string | null;
@@ -54,7 +55,7 @@ export const getWorkspaces = cache(async (): Promise<Workspace[]> => {
   const [members, locations] = await Promise.all([
     supabase
       .from("organization_members")
-      .select("role, display_name, organization:organizations(id, name)")
+      .select("id, role, display_name, organization:organizations(id, name)")
       .eq("user_id", user.id)
       .eq("status", "active")
       .order("created_at"),
@@ -74,6 +75,7 @@ export const getWorkspaces = cache(async (): Promise<Workspace[]> => {
     return [{
       organizationId: org.id,
       organizationName: org.name,
+      memberId: m.id,
       role: m.role,
       displayName: m.display_name,
       locations: locations.data

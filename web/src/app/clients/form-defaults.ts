@@ -1,4 +1,16 @@
 import type { ClientRow, PetRow } from "@/lib/clients";
+import type { VisitRow } from "@/lib/visits";
+
+export const visitDefaults = (v: VisitRow): Record<string, string> => ({
+  visitedOn: v.visited_on,
+  locationId: v.location_id,
+  groomerMemberId: v.groomer_member_id ?? "",
+  weightLbs: v.weight_lbs === null ? "" : String(v.weight_lbs),
+  services: v.services ?? "",
+  behavior: v.behavior ?? "",
+  cutDetails: v.cut_details ?? "",
+  notes: v.notes ?? "",
+});
 
 // Saved records → starting values for the edit forms (field names match the forms).
 

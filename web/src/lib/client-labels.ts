@@ -5,7 +5,14 @@ import type { Database } from "@/lib/supabase/database.types";
 export type PetSpecies = Database["public"]["Enums"]["pet_species"];
 export type PetSex = Database["public"]["Enums"]["pet_sex"];
 export type ContactMethod = Database["public"]["Enums"]["contact_method"];
+export type VisitBehavior = Database["public"]["Enums"]["visit_behavior"];
 
 export const SPECIES_LABELS: Record<PetSpecies, string> = { dog: "Dog", cat: "Cat", other: "Other" };
 export const SEX_LABELS: Record<PetSex, string> = { female: "Female", male: "Male", unknown: "Unknown" };
 export const CONTACT_LABELS: Record<ContactMethod, string> = { call: "Phone call", text: "Text message", email: "Email" };
+export const BEHAVIOR_LABELS: Record<VisitBehavior, string> = {
+  great: "Great",
+  good: "Good",
+  some_trouble: "Some trouble",
+  difficult: "Difficult",
+};

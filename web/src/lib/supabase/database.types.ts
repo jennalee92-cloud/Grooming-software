@@ -161,6 +161,99 @@ export type Database = {
           },
         ]
       }
+      grooming_visits: {
+        Row: {
+          behavior: Database["public"]["Enums"]["visit_behavior"] | null
+          correction_reason: string | null
+          corrects_visit_id: string | null
+          created_at: string
+          created_by: string | null
+          cut_details: string | null
+          groomer_member_id: string | null
+          id: string
+          location_id: string
+          notes: string | null
+          organization_id: string
+          pet_id: string
+          services: string | null
+          visited_on: string
+          voided: boolean
+          weight_lbs: number | null
+        }
+        Insert: {
+          behavior?: Database["public"]["Enums"]["visit_behavior"] | null
+          correction_reason?: string | null
+          corrects_visit_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          cut_details?: string | null
+          groomer_member_id?: string | null
+          id?: string
+          location_id: string
+          notes?: string | null
+          organization_id: string
+          pet_id: string
+          services?: string | null
+          visited_on: string
+          voided?: boolean
+          weight_lbs?: number | null
+        }
+        Update: {
+          behavior?: Database["public"]["Enums"]["visit_behavior"] | null
+          correction_reason?: string | null
+          corrects_visit_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          cut_details?: string | null
+          groomer_member_id?: string | null
+          id?: string
+          location_id?: string
+          notes?: string | null
+          organization_id?: string
+          pet_id?: string
+          services?: string | null
+          visited_on?: string
+          voided?: boolean
+          weight_lbs?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "grooming_visits_organization_id_corrects_visit_id_fkey"
+            columns: ["organization_id", "corrects_visit_id"]
+            isOneToOne: false
+            referencedRelation: "grooming_visits"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "grooming_visits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grooming_visits_organization_id_groomer_member_id_fkey"
+            columns: ["organization_id", "groomer_member_id"]
+            isOneToOne: false
+            referencedRelation: "organization_members"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "grooming_visits_organization_id_location_id_fkey"
+            columns: ["organization_id", "location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "grooming_visits_organization_id_pet_id_fkey"
+            columns: ["organization_id", "pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       invitation_locations: {
         Row: {
           invitation_id: string
@@ -603,6 +696,7 @@ export type Database = {
       member_status: "active" | "deactivated"
       pet_sex: "female" | "male" | "unknown"
       pet_species: "dog" | "cat" | "other"
+      visit_behavior: "great" | "good" | "some_trouble" | "difficult"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -745,6 +839,7 @@ export const Constants = {
       member_status: ["active", "deactivated"],
       pet_sex: ["female", "male", "unknown"],
       pet_species: ["dog", "cat", "other"],
+      visit_behavior: ["great", "good", "some_trouble", "difficult"],
     },
   },
 } as const

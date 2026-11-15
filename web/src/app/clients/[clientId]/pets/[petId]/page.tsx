@@ -1,16 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarClock, CircleCheck, PawPrint, PencilLine, Scissors, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CalendarClock, CircleCheck, PawPrint, PencilLine, Plus, Scissors, TriangleAlert } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { AppShell } from "@/components/app-shell";
 import { SEX_LABELS, SPECIES_LABELS, clientName, getClientWithPets, petAge } from "@/lib/clients";
-import { requireWorkspace } from "@/lib/dal";
+import { requireUser, requireWorkspace } from "@/lib/dal";
 import { UUID_PATTERN } from "@/lib/db-errors";
+import { dayLabel } from "@/lib/format";
 import { canArchiveClients, canEditClients } from "@/lib/roles";
+import { getPetVisits, getTeamOptions } from "@/lib/visits";
 import { setPetArchived } from "../../../actions";
+import { VisitHistory } from "../../../visit-history";
 
 export const metadata: Metadata = { title: "Pet profile | Grooming Desk" };
+
+const VISIT_NOTICES: Record<string, string> = {
+  added: "Visit recorded.",
+  corrected: "Correction saved. The earlier version is kept in the history.",
+  removed: "Visit removed. It's kept in the history with your reason.",
+};
 
 // Depends on who is logged in, so it renders per request.
 export const instant = false;
@@ -27,6 +36,11 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
 
   const archived = pet.archived_at !== null;
   const canEdit = canEditClients(workspace.role) && !archived && !record.client.archived_at;
+  // Every role records visits; archived pets and households are read-only.
+  const canRecord = !archived && !record.client.archived_at;
+  const basePath = `/clients/${clientId}/pets/${pet.id}`;
+  const [user, history, team] = await Promise.all([requireUser(), getPetVisits(workspace, pet.id), getTeamOptions(workspace)]);
+  const lastVisit = history.visits[0]?.current.visited_on;
   const canArchive = canArchiveClients(workspace.role) && !record.client.archived_at;
   const age = petAge(pet.birth_date);
 
@@ -53,10 +67,11 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
         <Link href={`/clients/${clientId}`} className="setup-back"><ArrowLeft size={15} /> Back to {clientName(record.client)}</Link>
         <span className="overline setup-overline"><PawPrint size={14} /> {[SPECIES_LABELS[pet.species], pet.breed].filter(Boolean).join(" · ").toUpperCase()}</span>
         <h1>{pet.name}{archived && <span className="status-chip status-chip-title">Archived</span>}</h1>
-        <p className="setup-lede">Part of the {clientName(record.client)} household.</p>
+        <p className="setup-lede">Part of the {clientName(record.client)} household. {lastVisit ? `Last visit ${dayLabel(lastVisit)}.` : "No visits recorded yet."}</p>
 
         {notice.created === "1" && <p className="form-notice"><CircleCheck size={16} /> Pet added.</p>}
         {notice.saved === "1" && <p className="form-notice"><CircleCheck size={16} /> Changes saved.</p>}
+        {typeof notice.visit === "string" && VISIT_NOTICES[notice.visit] && <p className="form-notice"><CircleCheck size={16} /> {VISIT_NOTICES[notice.visit]}</p>}
 
         {pet.handle_with_care && (
           <div className="caution-banner" role="note">
@@ -66,6 +81,7 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
         )}
 
         <div className="record-actions">
+          {canRecord && <Link href={`${basePath}/visits/new`} className="button-primary"><Scissors size={14} /> Record visit</Link>}
           {canEdit && <Link href={`/clients/${clientId}/pets/${pet.id}/edit`} className="button-quiet"><PencilLine size={14} /> Edit pet</Link>}
           {canArchive && (
             <ActionButton
@@ -100,9 +116,26 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
           </dl>
         </section>
 
-        <section className="team-card" aria-labelledby="history-title">
-          <div className="section-heading compact-heading"><div><span className="section-eyebrow">HISTORY</span><h2 id="history-title">Visits and vaccinations</h2></div><CalendarClock size={18} className="team-card-icon" /></div>
-          <p className="team-empty">Grooming visit history and vaccination records are the next parts being built. They&apos;ll appear here.</p>
+        <section className="team-card" id="history" aria-labelledby="history-title">
+          <div className="section-heading compact-heading">
+            <div><span className="section-eyebrow">NEVER OVERWRITTEN</span><h2 id="history-title">Visit history</h2></div>
+            {canRecord && <Link href={`${basePath}/visits/new`} className="button-quiet"><Plus size={14} /> Record visit</Link>}
+          </div>
+          <VisitHistory
+            visits={history.visits}
+            removed={history.removed}
+            basePath={basePath}
+            userId={user.id}
+            canCorrectAny={canArchiveClients(workspace.role)}
+            canRecord={canRecord}
+            team={team}
+            locations={workspace.locations}
+          />
+        </section>
+
+        <section className="team-card" aria-labelledby="vax-title">
+          <div className="section-heading compact-heading"><div><span className="section-eyebrow">COMING NEXT</span><h2 id="vax-title">Vaccinations</h2></div><CalendarClock size={18} className="team-card-icon" /></div>
+          <p className="team-empty">Vaccination records with expiry alerts are the next part being built. They&apos;ll appear here.</p>
         </section>
       </div>
     </AppShell>

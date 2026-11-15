@@ -17,6 +17,7 @@ import { AppShell } from "@/components/app-shell";
 import { getMyInvitations, requireWorkspace } from "@/lib/dal";
 import { countActivePets } from "@/lib/clients";
 import { canManageTeam } from "@/lib/roles";
+import { countVisitsOn, todayIn } from "@/lib/visits";
 import { getOpenInvitations, getTeam } from "./team/team-data";
 
 // Depends on who is logged in, so it renders per request.
@@ -25,8 +26,9 @@ export const instant = false;
 export default async function Home() {
   const workspace = await requireWorkspace();
   const manager = canManageTeam(workspace.role);
-  const [petCount, invitationsForMe, team, openInvites] = await Promise.all([
+  const [petCount, visitsToday, invitationsForMe, team, openInvites] = await Promise.all([
     countActivePets(workspace),
+    countVisitsOn(workspace, todayIn(workspace.locations[0]?.timezone)),
     getMyInvitations(),
     manager ? getTeam(workspace) : Promise.resolve([]),
     manager ? getOpenInvitations(workspace) : Promise.resolve([]),
@@ -87,12 +89,12 @@ export default async function Home() {
         <section className="overview-section" aria-labelledby="overview-title">
           <div className="section-heading">
             <div><span className="section-eyebrow">A CLEAR VIEW OF THE DAY</span><h2 id="overview-title">Your overview</h2></div>
-            <span className="section-note"><LockKeyhole size={14} /> Visit numbers arrive with grooming history</span>
+            <span className="section-note"><LockKeyhole size={14} /> Private to your business</span>
           </div>
           <div className="metric-grid">
             <article className="metric-card metric-card-sage"><div className="metric-label"><MapPin size={16} /><span>{manager ? "Locations" : "Your locations"}</span></div><div className="metric-value">{locationCount}</div><div className="metric-foot">{workspace.locations.map((l) => l.name).join(" · ")}</div></article>
             <Link href="/clients" className="metric-card metric-card-rose metric-link"><div className="metric-label"><Dog size={16} /><span>Pets on file</span></div><div className="metric-value">{petCount}</div><div className="metric-foot">{petCount === 0 ? "Add your first client →" : "Open clients & pets →"}</div></Link>
-            <article className="metric-card metric-card-lime"><div className="metric-label"><CalendarDays size={16} /><span>Today&apos;s visits</span></div><div className="metric-value">--</div><div className="metric-foot">Visit history comes with pet profiles</div></article>
+            <article className="metric-card metric-card-lime"><div className="metric-label"><CalendarDays size={16} /><span>Today&apos;s visits</span></div><div className="metric-value">{visitsToday}</div><div className="metric-foot">{visitsToday === 0 ? "Record visits from a pet's profile" : "Recorded so far today"}</div></article>
           </div>
         </section>
 

@@ -4,6 +4,10 @@
 const USER_FACING_CODES = new Set(["22023", "23505", "42501", "P0001", "P0002"]);
 
 export function userMessage(error: { code?: string; message: string }) {
+  // Row-level security refusals carry technical wording; explain them plainly.
+  if (error.code === "42501" && /row-level security|permission denied/i.test(error.message)) {
+    return "Your role or locations don't allow that change. An owner or admin can adjust your access on the Team page.";
+  }
   if (error.code && USER_FACING_CODES.has(error.code)) return error.message;
   console.error("Unexpected database error", error);
   return "Something went wrong. Try again, and if it keeps happening, let us know.";

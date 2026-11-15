@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { ContactMethod, PetSex, PetSpecies } from "@/lib/client-labels";
 import { requireWorkspace, type Workspace } from "@/lib/dal";
 import { UUID_PATTERN, userMessage } from "@/lib/db-errors";
+import { Invalid, optional, pastDate, required, snapshot, text, weightLbs } from "@/lib/form-fields";
 import { canArchiveClients, canEditClients } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,33 +16,6 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SPECIES: PetSpecies[] = ["dog", "cat", "other"];
 const SEXES: PetSex[] = ["female", "male", "unknown"];
 const CONTACTS: ContactMethod[] = ["call", "text", "email"];
-
-// ---------------------------------------------------------------------
-// Field helpers. Each limit matches the database's own check.
-// ---------------------------------------------------------------------
-const text = (fd: FormData, name: string) => String(fd.get(name) ?? "").trim();
-
-function snapshot(fd: FormData) {
-  const values: Record<string, string> = {};
-  for (const [key, value] of fd.entries()) {
-    if (typeof value === "string" && !key.startsWith("$")) values[key] = value;
-  }
-  return values;
-}
-
-class Invalid extends Error {}
-
-function optional(fd: FormData, name: string, max: number, label: string) {
-  const value = text(fd, name);
-  if (value.length > max) throw new Invalid(`Keep ${label} under ${max} characters.`);
-  return value || null;
-}
-
-function required(fd: FormData, name: string, max: number, label: string) {
-  const value = optional(fd, name, max, label);
-  if (!value) throw new Invalid(`Enter ${label}.`);
-  return value;
-}
 
 function parseClient(fd: FormData, workspace: Workspace) {
   const email = optional(fd, "email", 254, "the email");
@@ -73,18 +47,7 @@ function parsePet(fd: FormData) {
   const fixed = text(fd, "fixed");
 
   const birthDate = text(fd, "birthDate");
-  if (birthDate) {
-    const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || birthDate < "1980-01-01" || birthDate > tomorrow) {
-      throw new Invalid("Enter a birth date that isn't in the future, or leave it blank.");
-    }
-  }
-
-  const weightText = text(fd, "weightLbs");
-  const weight = weightText ? Number(weightText) : null;
-  if (weight !== null && (!Number.isFinite(weight) || weight <= 0 || weight >= 400)) {
-    throw new Invalid("Enter a weight in pounds between 0 and 400, or leave it blank.");
-  }
+  if (birthDate) pastDate(birthDate, "1980-01-01", "Enter a birth date that isn't in the future, or leave it blank.");
 
   return {
     name: required(fd, "name", 80, "the pet's name"),
@@ -93,7 +56,7 @@ function parsePet(fd: FormData) {
     sex: SEXES.includes(sex as PetSex) ? (sex as PetSex) : "unknown",
     fixed: fixed === "yes" ? true : fixed === "no" ? false : null,
     birth_date: birthDate || null,
-    weight_lbs: weight === null ? null : Math.round(weight * 10) / 10,
+    weight_lbs: weightLbs(fd, "weightLbs"),
     color: optional(fd, "color", 80, "the color"),
     coat: optional(fd, "coat", 120, "the coat description"),
     handle_with_care: fd.get("handleWithCare") === "on",
