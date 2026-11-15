@@ -4,14 +4,16 @@ import { useActionState } from "react";
 import { CircleAlert, Dog } from "lucide-react";
 import { CONTACT_LABELS, SPECIES_LABELS, type ContactMethod, type PetSpecies } from "@/lib/client-labels";
 import { saveClient, type FormState } from "./actions";
+import { RabiesFields } from "./rabies-fields";
 
 type Props = {
   clientId?: string;
   locations: { id: string; name: string }[];
   defaults?: Record<string, string>;
+  today?: string; // needed when adding a new client
 };
 
-export function ClientForm({ clientId, locations, defaults = {} }: Props) {
+export function ClientForm({ clientId, locations, defaults = {}, today = "" }: Props) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(saveClient, undefined);
   const v = state?.values ?? defaults;
   const isNew = !clientId;
@@ -105,6 +107,7 @@ export function ClientForm({ clientId, locations, defaults = {} }: Props) {
           </label>
         </fieldset>
       )}
+      {isNew && <RabiesFields values={v} today={today} />}
 
       <button type="submit" className="button-primary invite-submit" disabled={pending}>
         {pending ? "Saving…" : isNew ? "Add client" : "Save changes"}

@@ -42,4 +42,10 @@ export const needsRabies = (species: PetSpecies) => species === "dog" || species
 export const vaccineDate = (day: string) =>
   new Date(`${day}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
 
+// YYYY-MM-DD plus whole years, keeping the same calendar day.
+export function plusYears(day: string, years: number) {
+  const [y, m, d] = day.split("-").map(Number);
+  return new Date(Date.UTC(y + years, m - 1, d)).toISOString().slice(0, 10);
+}
+
 export { addDays };

@@ -5,6 +5,7 @@ import { ArrowLeft, UserPlus } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { requireWorkspace } from "@/lib/dal";
 import { canEditClients } from "@/lib/roles";
+import { todayIn } from "@/lib/visits";
 import { ClientForm } from "../client-form";
 
 export const metadata: Metadata = { title: "Add client | Grooming Desk" };
@@ -24,7 +25,7 @@ export default async function NewClientPage() {
         <h1>Add a <em>client.</em></h1>
         <p className="setup-lede">Only a first name is required. You can fill in the rest now or later.</p>
         <section className="team-card member-edit">
-          <ClientForm locations={workspace.locations} />
+          <ClientForm locations={workspace.locations} today={todayIn(workspace.locations[0]?.timezone)} />
         </section>
       </div>
     </AppShell>

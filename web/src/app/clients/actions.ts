@@ -8,6 +8,7 @@ import { UUID_PATTERN, userMessage } from "@/lib/db-errors";
 import { Invalid, optional, pastDate, required, snapshot, text, weightLbs } from "@/lib/form-fields";
 import { canArchiveClients, canEditClients } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
+import { parseRabies } from "./rabies";
 
 export type FormState = { error?: string; values?: Record<string, string> } | undefined;
 export type ActionState = { error?: string } | undefined;
@@ -82,12 +83,15 @@ export async function saveClient(_prev: FormState, fd: FormData): Promise<FormSt
   let workspace: Workspace;
   let row: ReturnType<typeof parseClient>;
   let firstPet: { name: string; breed: string | null; species: PetSpecies } | null = null;
+  let rabies: ReturnType<typeof parseRabies> = null;
 
   try {
     workspace = await editableWorkspace();
     if (clientId && !UUID_PATTERN.test(clientId)) throw new Invalid("That client isn't valid.");
     row = parseClient(fd, workspace);
     const petName = optional(fd, "petName", 80, "the pet's name");
+    rabies = clientId ? null : parseRabies(fd);
+    if (rabies && !petName) throw new Invalid("Add the pet's name so the rabies record has a pet to go with.");
     if (!clientId && petName) {
       const species = text(fd, "petSpecies");
       firstPet = {
@@ -116,8 +120,13 @@ export async function saveClient(_prev: FormState, fd: FormData): Promise<FormSt
   if (error) return { error: userMessage(error), values };
 
   if (firstPet) {
-    const pet = await supabase.from("pets").insert({ ...firstPet, organization_id: workspace.organizationId, client_id: data.id });
+    const pet = await supabase.from("pets")
+      .insert({ ...firstPet, organization_id: workspace.organizationId, client_id: data.id }).select("id").single();
     if (pet.error) redirect(`/clients/${data.id}?petError=1`);
+    if (rabies) {
+      const vax = await supabase.from("pet_vaccinations").insert({ ...rabies, organization_id: workspace.organizationId, pet_id: pet.data.id });
+      if (vax.error) redirect(`/clients/${data.id}/pets/${pet.data.id}?vaccine=error#vaccinations`);
+    }
   }
   redirect(`/clients/${data.id}?created=1`);
 }
@@ -144,11 +153,13 @@ export async function savePet(_prev: FormState, fd: FormData): Promise<FormState
   const petId = text(fd, "petId");
   let workspace: Workspace;
   let row: ReturnType<typeof parsePet>;
+  let rabies: ReturnType<typeof parseRabies> = null;
 
   try {
     workspace = await editableWorkspace();
     if (!UUID_PATTERN.test(clientId) || (petId && !UUID_PATTERN.test(petId))) throw new Invalid("That pet isn't valid.");
     row = parsePet(fd);
+    rabies = petId ? null : parseRabies(fd);
   } catch (e) {
     if (e instanceof Invalid) return { error: e.message, values };
     throw e;
@@ -167,6 +178,10 @@ export async function savePet(_prev: FormState, fd: FormData): Promise<FormState
   const { data, error } = await supabase.from("pets")
     .insert({ ...row, organization_id: workspace.organizationId, client_id: clientId }).select("id").single();
   if (error) return { error: userMessage(error), values };
+  if (rabies) {
+    const vax = await supabase.from("pet_vaccinations").insert({ ...rabies, organization_id: workspace.organizationId, pet_id: data.id });
+    if (vax.error) redirect(`/clients/${clientId}/pets/${data.id}?created=1&vaccine=error#vaccinations`);
+  }
   redirect(`/clients/${clientId}/pets/${data.id}?created=1`);
 }
 

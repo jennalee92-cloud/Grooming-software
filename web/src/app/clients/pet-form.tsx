@@ -4,14 +4,16 @@ import { useActionState } from "react";
 import { CircleAlert, HeartPulse, PawPrint, TriangleAlert } from "lucide-react";
 import { SEX_LABELS, SPECIES_LABELS, type PetSex, type PetSpecies } from "@/lib/client-labels";
 import { savePet, type FormState } from "./actions";
+import { RabiesFields } from "./rabies-fields";
 
 type Props = {
   clientId: string;
   petId?: string;
   defaults?: Record<string, string>;
+  today?: string; // needed when adding a new pet
 };
 
-export function PetForm({ clientId, petId, defaults = {} }: Props) {
+export function PetForm({ clientId, petId, defaults = {}, today = "" }: Props) {
   const [state, formAction, pending] = useActionState<FormState, FormData>(savePet, undefined);
   const v = state?.values ?? defaults;
 
@@ -81,6 +83,8 @@ export function PetForm({ clientId, petId, defaults = {} }: Props) {
             placeholder="For example: curly, matting behind ears" />
         </label>
       </fieldset>
+
+      {!petId && <RabiesFields values={v} today={today} />}
 
       <fieldset className="form-section">
         <legend><HeartPulse size={15} /> Care and handling</legend>

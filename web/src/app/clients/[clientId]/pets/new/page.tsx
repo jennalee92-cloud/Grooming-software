@@ -7,6 +7,7 @@ import { clientName, getClientWithPets } from "@/lib/clients";
 import { requireWorkspace } from "@/lib/dal";
 import { UUID_PATTERN } from "@/lib/db-errors";
 import { canEditClients } from "@/lib/roles";
+import { todayIn } from "@/lib/visits";
 import { PetForm } from "../../../pet-form";
 
 export const metadata: Metadata = { title: "Add pet | Grooming Desk" };
@@ -30,7 +31,10 @@ export default async function NewPetPage({ params }: PageProps<"/clients/[client
         <h1>Add a pet to<br /><em>{clientName(record.client)}.</em></h1>
         <p className="setup-lede">Only a name is required. Care notes and grooming instructions show up for the whole team.</p>
         <section className="team-card member-edit">
-          <PetForm clientId={clientId} />
+          <PetForm
+            clientId={clientId}
+            today={todayIn((workspace.locations.find((l) => l.id === record.client.home_location_id) ?? workspace.locations[0])?.timezone)}
+          />
         </section>
       </div>
     </AppShell>

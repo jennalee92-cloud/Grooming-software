@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { CircleAlert, ShieldCheck, Syringe } from "lucide-react";
+import { plusYears } from "@/lib/vaccine-labels";
 import { saveVaccination, type VaccinationFormState } from "./vaccination-actions";
 
 type Props = {
@@ -12,13 +13,6 @@ type Props = {
   today: string;
   defaults: Record<string, string>;
 };
-
-// YYYY-MM-DD plus whole years, keeping the same calendar day.
-function plusYears(day: string, years: number) {
-  const [y, m, d] = day.split("-").map(Number);
-  const date = new Date(Date.UTC(y + years, m - 1, d));
-  return date.toISOString().slice(0, 10);
-}
 
 export function VaccinationForm({ clientId, petId, vaccinationId, suggestions, today, defaults }: Props) {
   const [state, formAction, pending] = useActionState<VaccinationFormState, FormData>(saveVaccination, undefined);
