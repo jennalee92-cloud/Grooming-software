@@ -9,7 +9,11 @@ import { createClient } from "@/lib/supabase/server";
 // version it replaces. These helpers turn the rows back into "the current
 // version of each visit, plus the versions it replaced".
 
-export type VisitRow = Database["public"]["Tables"]["grooming_visits"]["Row"];
+export type VisitLine = Database["public"]["Tables"]["visit_services"]["Row"];
+// A visit version with the services charged on it (in the order entered).
+export type VisitRow = Database["public"]["Tables"]["grooming_visits"]["Row"] & { visit_services: VisitLine[] };
+
+export const visitTotal = (v: VisitRow) => v.visit_services.reduce((sum, l) => sum + l.price_cents, 0);
 
 export type Visit = {
   current: VisitRow;
@@ -50,9 +54,10 @@ export function buildVisits(rows: VisitRow[]): { visits: Visit[]; removed: Visit
 
 export const getPetVisits = cache(async (workspace: Workspace, petId: string) => {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("grooming_visits").select("*")
+  const { data, error } = await supabase.from("grooming_visits").select("*, visit_services(*)")
     .eq("organization_id", workspace.organizationId).eq("pet_id", petId);
   if (error) throw new Error(`Could not load visit history: ${error.message}`);
+  for (const v of data) v.visit_services.sort((a, b) => a.position - b.position);
   return buildVisits(data);
 });
 

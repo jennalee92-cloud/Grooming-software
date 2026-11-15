@@ -31,6 +31,9 @@ export const canManageTeam = (role: MemberRole) => role === "owner" || role === 
 export const canEditClients = (role: MemberRole) => role !== "bather";
 export const canArchiveClients = (role: MemberRole) => role === "owner" || role === "admin" || role === "manager";
 
+// Mirrors the database rules for the service menu.
+export const canManageServices = (role: MemberRole) => role === "owner" || role === "admin" || role === "manager";
+
 // Roles the caller may hand out. Only the owner can grant admin.
 export const assignableRoles = (callerRole: MemberRole) =>
   INVITABLE_ROLES.filter((r) => r !== "admin" || callerRole === "owner");

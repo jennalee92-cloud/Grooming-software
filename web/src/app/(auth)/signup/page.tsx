@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Info } from "lucide-react";
 import { getCurrentUser } from "@/lib/dal";
-import { signUp } from "../actions";
+import { logOut, signUp } from "../actions";
 import { AuthForm } from "../auth-form";
 import { AuthFrame } from "../auth-frame";
 
@@ -15,7 +17,27 @@ export default async function SignupPage({ searchParams }: PageProps<"/signup">)
   // Invitation links carry the invited email.
   const invitedEmail = typeof email === "string" && email.length <= 254 ? email : undefined;
 
-  if (await getCurrentUser()) redirect(invitedEmail ? "/invitations" : "/");
+  const user = await getCurrentUser();
+  if (user) {
+    // Invited email matches who's signed in: the invitation is waiting for them.
+    if (!invitedEmail || invitedEmail.trim().toLowerCase() === user.email?.toLowerCase()) {
+      redirect(invitedEmail ? "/invitations" : "/");
+    }
+    // Someone else is signed in on this browser (common when testing, or a shared front-desk computer).
+    return (
+      <AuthFrame eyebrow="YOU'VE BEEN INVITED" title="Wrong" accent="account." lede={`This invitation is for ${invitedEmail}, but this browser is signed in as ${user.email}.`}>
+        <div className="auth-panel">
+          <Info size={18} />
+          <p>Log out to create the account for {invitedEmail}, or to log in as them if they already have one. Tip: when testing, open the invite link in a private window instead.</p>
+        </div>
+        <form action={logOut}>
+          <input type="hidden" name="next" value={`/signup?email=${encodeURIComponent(invitedEmail)}`} />
+          <button type="submit" className="button-primary button-block">Log out and continue</button>
+        </form>
+        <p className="auth-switch"><Link href="/">Stay signed in as {user.email}</Link></p>
+      </AuthFrame>
+    );
+  }
 
   return (
     <AuthFrame

@@ -6,7 +6,10 @@ import { AppShell } from "@/components/app-shell";
 import { getClientWithPets } from "@/lib/clients";
 import { requireWorkspace } from "@/lib/dal";
 import { UUID_PATTERN } from "@/lib/db-errors";
-import { getTeamOptions, todayIn } from "@/lib/visits";
+import { canManageServices } from "@/lib/roles";
+import { suggestSize } from "@/lib/service-labels";
+import { getMenu } from "@/lib/services";
+import { getPetVisits, getTeamOptions, todayIn } from "@/lib/visits";
 import { VisitForm } from "../../../../../visit-form";
 
 export const metadata: Metadata = { title: "Record visit | Grooming Desk" };
@@ -24,7 +27,10 @@ export default async function NewVisitPage({ params }: PageProps<"/clients/[clie
   if (!record || !pet) notFound();
   if (pet.archived_at || record.client.archived_at) redirect(`/clients/${clientId}/pets/${petId}`);
 
-  const team = (await getTeamOptions(workspace)).filter((m) => m.active);
+  const [allTeam, menu, { visits }] = await Promise.all([getTeamOptions(workspace), getMenu(workspace), getPetVisits(workspace, petId)]);
+  const team = allTeam.filter((m) => m.active);
+  // Size from the last visit that recorded one, else from the pet's weight.
+  const lastSize = visits.find((v) => v.current.pet_size)?.current.pet_size ?? null;
   const home = workspace.locations.find((l) => l.id === record.client.home_location_id);
   const timeZone = (home ?? workspace.locations[0])?.timezone;
 
@@ -48,6 +54,9 @@ export default async function NewVisitPage({ params }: PageProps<"/clients/[clie
             team={team}
             today={todayIn(timeZone)}
             defaults={{ locationId: home?.id ?? workspace.locations[0]?.id ?? "", groomerMemberId: workspace.memberId }}
+            menu={menu}
+            suggestedSize={lastSize ?? suggestSize(pet.weight_lbs)}
+            canEditMenu={canManageServices(workspace.role)}
           />
         </section>
       </div>

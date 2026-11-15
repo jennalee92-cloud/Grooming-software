@@ -9,6 +9,7 @@ import {
   LogOut,
   Scissors,
   Settings2,
+  Tag,
   Users,
 } from "lucide-react";
 import { logOut } from "@/app/(auth)/actions";
@@ -17,7 +18,7 @@ import { getWorkspaces, ROLE_LABELS, type Workspace } from "@/lib/dal";
 
 type Props = {
   workspace: Workspace;
-  active: "overview" | "clients" | "team" | "setup";
+  active: "overview" | "clients" | "services" | "team" | "setup";
   crumb: string;
   topbar?: React.ReactNode;
   children: React.ReactNode;
@@ -82,6 +83,7 @@ export async function AppShell({ workspace, active, crumb, topbar, children }: P
           <span className="nav-caption">Workspace</span>
           {navLink("overview", "/", <LayoutDashboard size={18} />, "Overview")}
           {navLink("clients", "/clients", <Dog size={18} />, "Clients & pets")}
+          {navLink("services", "/services", <Tag size={18} />, "Services & prices")}
           {navLink("team", "/team", <Users size={18} />, "Team")}
           {navLink("setup", "/setup", <Settings2 size={18} />, "Workspace setup")}
           <span className="nav-caption nav-caption-spaced">Coming into focus</span>

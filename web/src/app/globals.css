@@ -393,6 +393,60 @@ h1 em { color: #ac6d58; font-weight: 400; }
 .removed-visits li { border-radius: 7px; background: var(--paper); padding: 9px 11px; color: #6f7a72; }
 .removed-visits small { display: block; margin-top: 2px; color: #8c3f2c; }
 .record-page .note-block, .setup-page > .note-block { margin-top: 14px; }
+
+/* ---------- Services & prices ---------- */
+.field-optional { margin-left: 4px; color: #8a938b; font-size: 11.5px; font-style: normal; font-weight: 500; }
+.field-narrow { max-width: 300px; }
+.field > span svg { vertical-align: -2px; }
+.field-help { color: #7e887f; font-size: 12px; }
+.money-input { display: flex; align-items: center; border: 1px solid #d9ddd2; border-radius: 7px; background: #fffefa; padding-left: 11px; transition: border-color 140ms ease, box-shadow 140ms ease; }
+.money-input:focus-within { border-color: var(--forest); box-shadow: 0 0 0 3px #dce7dc; }
+.money-input > span { color: #7e887f; font-size: 15px; }
+.field .money-input input, .money-input input { min-width: 0; min-height: 42px; border: 0; background: transparent; padding: 0 10px 0 4px; box-shadow: none; color: var(--ink); font: inherit; font-size: 15px; }
+.money-input input:focus { outline: none; box-shadow: none; }
+.money-input-small { width: 118px; flex: 0 0 auto; }
+.money-input-small input { min-height: 38px; width: 100%; }
+.price-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.service-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.service-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 16px; border-top: 1px solid #efefe9; padding: 14px 0; }
+.service-list li:first-child { border-top: 0; }
+.service-list li.is-off { opacity: 0.62; }
+.service-copy { display: grid; min-width: 0; gap: 3px; }
+.service-copy strong { color: var(--ink); font-size: 15px; }
+.service-copy small { display: inline-flex; align-items: center; gap: 4px; color: #7c867e; font-size: 12.5px; line-height: 1.5; }
+.service-price strong { color: var(--forest-deep); font-size: 15px; }
+.size-prices { display: grid; grid-template-columns: repeat(4, auto); gap: 2px 14px; margin: 0; text-align: right; }
+.size-prices div { display: grid; }
+.size-prices dt { color: #8a938b; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.size-prices dd { margin: 0; color: var(--forest-deep); font-size: 14px; font-weight: 650; }
+.service-picks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.service-picks li { display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 1px solid #e3e5dd; border-radius: 8px; background: #fffefa; padding: 6px 8px 6px 12px; }
+.service-picks li.is-on { border-color: #b9cbbd; background: #f3f7f1; }
+.service-pick { display: flex; min-height: 38px; flex: 1 1 auto; align-items: center; gap: 10px; cursor: pointer; }
+.service-pick input { width: 17px; height: 17px; accent-color: var(--forest); }
+.service-pick > span { display: grid; gap: 1px; }
+.service-pick strong { color: var(--ink); font-size: 14px; }
+.service-pick small { color: #7c867e; font-size: 12px; }
+.extra-charges { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.extra-charges li { display: flex; align-items: center; gap: 8px; }
+.extra-charges li > input { min-width: 0; min-height: 40px; flex: 1 1 auto; border: 1px solid #d9ddd2; border-radius: 7px; background: #fffefa; padding: 0 12px; color: var(--ink); font: inherit; font-size: 15px; }
+.extra-charges li > input:focus { outline: none; border-color: var(--forest); box-shadow: 0 0 0 3px #dce7dc; }
+.button-icon { justify-content: center; width: 38px; padding: 0; }
+.charges-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.charges-total { color: #5f6b63; font-size: 13px; }
+.charges-total strong { margin-left: 6px; color: var(--forest-deep); font-size: 18px; }
+.charges-total small { color: #8a938b; }
+.visit-charges { width: 100%; margin-top: 9px; border-collapse: collapse; font-size: 13.5px; }
+.visit-charges td, .visit-charges th { padding: 3px 0; text-align: left; font-weight: 500; }
+.visit-charges td:last-child { color: var(--forest-deep); font-weight: 650; text-align: right; white-space: nowrap; }
+.visit-charges s { margin-right: 4px; color: #a1a9a2; font-weight: 500; }
+.visit-charges tfoot th, .visit-charges tfoot td { border-top: 1px solid #e5e3da; padding-top: 6px; font-weight: 750; }
+@media (max-width: 680px) {
+  .price-grid { grid-template-columns: 1fr 1fr; }
+  .service-list li { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .service-list .member-side { justify-content: flex-start; }
+  .size-prices { text-align: left; }
+}
 @media (max-width: 680px) {
   .detail-list { grid-template-columns: 1fr; }
   .client-search .button-primary { flex: 1 1 auto; }

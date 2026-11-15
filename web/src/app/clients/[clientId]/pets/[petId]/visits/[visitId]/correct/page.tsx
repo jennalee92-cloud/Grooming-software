@@ -6,7 +6,9 @@ import { AppShell } from "@/components/app-shell";
 import { getClientWithPets } from "@/lib/clients";
 import { requireUser, requireWorkspace } from "@/lib/dal";
 import { UUID_PATTERN } from "@/lib/db-errors";
-import { canArchiveClients } from "@/lib/roles";
+import { canArchiveClients, canManageServices } from "@/lib/roles";
+import { suggestSize } from "@/lib/service-labels";
+import { getMenu } from "@/lib/services";
 import { getPetVisits, getTeamOptions, todayIn } from "@/lib/visits";
 import { visitDefaults } from "../../../../../../form-defaults";
 import { VisitForm } from "../../../../../../visit-form";
@@ -32,7 +34,8 @@ export default async function CorrectVisitPage({ params }: PageProps<"/clients/[
   if (!visit) redirect(`${petPage}#history`);
   if (visit.created_by !== user.id && !canArchiveClients(workspace.role)) redirect(`${petPage}#history`);
 
-  const team = (await getTeamOptions(workspace)).filter((m) => m.active || m.memberId === visit.groomer_member_id);
+  const [allTeam, menu] = await Promise.all([getTeamOptions(workspace), getMenu(workspace)]);
+  const team = allTeam.filter((m) => m.active || m.memberId === visit.groomer_member_id);
   const location = workspace.locations.find((l) => l.id === visit.location_id);
 
   return (
@@ -51,7 +54,10 @@ export default async function CorrectVisitPage({ params }: PageProps<"/clients/[
               locations={workspace.locations}
               team={team}
               today={todayIn(location.timezone)}
-              defaults={visitDefaults(visit)}
+              defaults={visitDefaults(visit, new Set(menu.map((m) => m.id)))}
+              menu={menu}
+              suggestedSize={suggestSize(visit.weight_lbs ?? pet.weight_lbs)}
+              canEditMenu={canManageServices(workspace.role)}
             />
           ) : (
             <p className="team-empty">This visit was recorded at a location you don&apos;t work at, so it can only be corrected by an owner or admin.</p>

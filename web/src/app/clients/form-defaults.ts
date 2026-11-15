@@ -1,16 +1,34 @@
 import type { ClientRow, PetRow } from "@/lib/clients";
+import { MAX_EXTRAS, moneyInput } from "@/lib/service-labels";
 import type { VisitRow } from "@/lib/visits";
 
-export const visitDefaults = (v: VisitRow): Record<string, string> => ({
-  visitedOn: v.visited_on,
-  locationId: v.location_id,
-  groomerMemberId: v.groomer_member_id ?? "",
-  weightLbs: v.weight_lbs === null ? "" : String(v.weight_lbs),
-  services: v.services ?? "",
-  behavior: v.behavior ?? "",
-  cutDetails: v.cut_details ?? "",
-  notes: v.notes ?? "",
-});
+// Lines for services still on the menu come back as menu picks; anything
+// else (extra charges, retired services) comes back as an extra charge.
+export function visitDefaults(v: VisitRow, menuIds: Set<string>): Record<string, string> {
+  const values: Record<string, string> = {
+    visitedOn: v.visited_on,
+    locationId: v.location_id,
+    groomerMemberId: v.groomer_member_id ?? "",
+    weightLbs: v.weight_lbs === null ? "" : String(v.weight_lbs),
+    petSize: v.pet_size ?? "",
+    services: v.services ?? "",
+    behavior: v.behavior ?? "",
+    cutDetails: v.cut_details ?? "",
+    notes: v.notes ?? "",
+  };
+  let extra = 0;
+  for (const line of v.visit_services) {
+    if (line.service_id && menuIds.has(line.service_id)) {
+      values[`svc_${line.service_id}`] = "on";
+      values[`price_${line.service_id}`] = moneyInput(line.price_cents);
+    } else if (extra < MAX_EXTRAS) {
+      values[`extraName_${extra}`] = line.name;
+      values[`extraPrice_${extra}`] = moneyInput(line.price_cents);
+      extra++;
+    }
+  }
+  return values;
+}
 
 // Saved records → starting values for the edit forms (field names match the forms).
 

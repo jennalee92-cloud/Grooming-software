@@ -175,6 +175,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           pet_id: string
+          pet_size: Database["public"]["Enums"]["pet_size"] | null
           services: string | null
           visited_on: string
           voided: boolean
@@ -193,6 +194,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           pet_id: string
+          pet_size?: Database["public"]["Enums"]["pet_size"] | null
           services?: string | null
           visited_on: string
           voided?: boolean
@@ -211,6 +213,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           pet_id?: string
+          pet_size?: Database["public"]["Enums"]["pet_size"] | null
           services?: string | null
           visited_on?: string
           voided?: boolean
@@ -587,6 +590,126 @@ export type Database = {
           },
         ]
       }
+      services: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          large_price_cents: number | null
+          medium_price_cents: number | null
+          name: string
+          organization_id: string
+          price_cents: number | null
+          pricing: Database["public"]["Enums"]["service_pricing"]
+          retired_at: string | null
+          small_price_cents: number | null
+          updated_at: string
+          xlarge_price_cents: number | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          large_price_cents?: number | null
+          medium_price_cents?: number | null
+          name: string
+          organization_id: string
+          price_cents?: number | null
+          pricing?: Database["public"]["Enums"]["service_pricing"]
+          retired_at?: string | null
+          small_price_cents?: number | null
+          updated_at?: string
+          xlarge_price_cents?: number | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          large_price_cents?: number | null
+          medium_price_cents?: number | null
+          name?: string
+          organization_id?: string
+          price_cents?: number | null
+          pricing?: Database["public"]["Enums"]["service_pricing"]
+          retired_at?: string | null
+          small_price_cents?: number | null
+          updated_at?: string
+          xlarge_price_cents?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_services: {
+        Row: {
+          created_at: string
+          id: string
+          list_price_cents: number | null
+          name: string
+          organization_id: string
+          position: number
+          price_cents: number
+          service_id: string | null
+          visit_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          list_price_cents?: number | null
+          name: string
+          organization_id: string
+          position?: number
+          price_cents: number
+          service_id?: string | null
+          visit_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          list_price_cents?: number | null
+          name?: string
+          organization_id?: string
+          position?: number
+          price_cents?: number
+          service_id?: string | null
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_services_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_services_organization_id_service_id_fkey"
+            columns: ["organization_id", "service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "visit_services_organization_id_visit_id_fkey"
+            columns: ["organization_id", "visit_id"]
+            isOneToOne: false
+            referencedRelation: "grooming_visits"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -627,6 +750,26 @@ export type Database = {
           organization_name: string
           role: Database["public"]["Enums"]["member_role"]
         }[]
+      }
+      record_visit: {
+        Args: {
+          p_behavior?: Database["public"]["Enums"]["visit_behavior"]
+          p_correction_reason?: string
+          p_corrects_visit_id?: string
+          p_cut_details?: string
+          p_groomer_member_id?: string
+          p_lines?: Json
+          p_location_id: string
+          p_notes?: string
+          p_organization_id: string
+          p_pet_id: string
+          p_pet_size?: Database["public"]["Enums"]["pet_size"]
+          p_services?: string
+          p_visited_on: string
+          p_voided?: boolean
+          p_weight_lbs?: number
+        }
+        Returns: string
       }
       revoke_invitation: {
         Args: { p_invitation_id: string }
@@ -695,7 +838,9 @@ export type Database = {
         | "front_desk"
       member_status: "active" | "deactivated"
       pet_sex: "female" | "male" | "unknown"
+      pet_size: "small" | "medium" | "large" | "xlarge"
       pet_species: "dog" | "cat" | "other"
+      service_pricing: "flat" | "by_size"
       visit_behavior: "great" | "good" | "some_trouble" | "difficult"
     }
     CompositeTypes: {
@@ -838,7 +983,9 @@ export const Constants = {
       ],
       member_status: ["active", "deactivated"],
       pet_sex: ["female", "male", "unknown"],
+      pet_size: ["small", "medium", "large", "xlarge"],
       pet_species: ["dog", "cat", "other"],
+      service_pricing: ["flat", "by_size"],
       visit_behavior: ["great", "good", "some_trouble", "difficult"],
     },
   },

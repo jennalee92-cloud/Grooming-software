@@ -1,8 +1,37 @@
 import Link from "next/link";
-import { History, MapPin, PencilLine, Scale, UserRound } from "lucide-react";
+import { History, MapPin, PencilLine, Ruler, Scale, UserRound } from "lucide-react";
 import { BEHAVIOR_LABELS } from "@/lib/client-labels";
 import { dayLabel, shortDate } from "@/lib/format";
-import type { TeamOption, Visit, VisitRow } from "@/lib/visits";
+import { SIZE_LABELS, money } from "@/lib/service-labels";
+import { visitTotal, type TeamOption, type Visit, type VisitRow } from "@/lib/visits";
+
+// One line for older versions and removed visits: services and total.
+const servicesSummary = (v: VisitRow) =>
+  v.visit_services.length > 0
+    ? `${v.visit_services.map((l) => l.name).join(", ")} (${money(visitTotal(v))})`
+    : v.services;
+
+function Charges({ visit }: { visit: VisitRow }) {
+  if (visit.visit_services.length === 0) return null;
+  return (
+    <table className="visit-charges">
+      <tbody>
+        {visit.visit_services.map((l) => (
+          <tr key={l.id}>
+            <td>{l.name}</td>
+            <td>
+              {l.list_price_cents !== null && l.list_price_cents !== l.price_cents && <s>{money(l.list_price_cents)}</s>}{" "}
+              {money(l.price_cents)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+      {visit.visit_services.length > 1 && (
+        <tfoot><tr><th scope="row">Total</th><td>{money(visitTotal(visit))}</td></tr></tfoot>
+      )}
+    </table>
+  );
+}
 
 type Props = {
   visits: Visit[];
@@ -45,7 +74,9 @@ export function VisitHistory({ visits, removed, basePath, userId, canCorrectAny,
                 <span><MapPin size={13} /> {locationName(v.location_id)}</span>
                 {v.groomer_member_id && <span><UserRound size={13} /> {byMember.get(v.groomer_member_id) ?? "Former team member"}</span>}
                 {v.weight_lbs && <span><Scale size={13} /> {v.weight_lbs} lbs</span>}
+                {v.pet_size && <span><Ruler size={13} /> {SIZE_LABELS[v.pet_size]}</span>}
               </div>
+              <Charges visit={v} />
               {v.services && <p className="visit-services">{v.services}</p>}
               {v.cut_details && <div className="visit-field"><span>Cut</span><p className="prewrap-text">{v.cut_details}</p></div>}
               {v.notes && <div className="visit-field"><span>Notes</span><p className="prewrap-text">{v.notes}</p></div>}
@@ -57,7 +88,7 @@ export function VisitHistory({ visits, removed, basePath, userId, canCorrectAny,
                     {earlier.map((e) => (
                       <li key={e.id}>
                         <small>{e.corrects_visit_id ? `Correction (${e.correction_reason})` : "Original"} recorded by {recorder(e)}, {shortDate(e.created_at)}</small>
-                        <p>{[dayLabel(e.visited_on), locationName(e.location_id), e.services, e.behavior && BEHAVIOR_LABELS[e.behavior], e.weight_lbs && `${e.weight_lbs} lbs`].filter(Boolean).join(" · ")}</p>
+                        <p>{[dayLabel(e.visited_on), locationName(e.location_id), servicesSummary(e), e.behavior && BEHAVIOR_LABELS[e.behavior], e.weight_lbs && `${e.weight_lbs} lbs`].filter(Boolean).join(" · ")}</p>
                         {e.cut_details && <p className="prewrap-text">Cut: {e.cut_details}</p>}
                         {e.notes && <p className="prewrap-text">Notes: {e.notes}</p>}
                       </li>
@@ -83,7 +114,7 @@ export function VisitHistory({ visits, removed, basePath, userId, canCorrectAny,
               const original = earlier[0] ?? v;
               return (
                 <li key={v.id}>
-                  <strong>{dayLabel(original.visited_on)}</strong> · {original.services ?? "No services noted"}
+                  <strong>{dayLabel(original.visited_on)}</strong> · {servicesSummary(original) ?? "No services noted"}
                   <small>Removed by {recorder(v)}, {shortDate(v.created_at)}: {v.correction_reason}</small>
                 </li>
               );

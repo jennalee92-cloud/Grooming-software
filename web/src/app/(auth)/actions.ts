@@ -63,8 +63,11 @@ export async function logIn(_prev: AuthFormState, formData: FormData): Promise<A
   redirect("/");
 }
 
-export async function logOut() {
+// Logs out, then goes to /login, or back to an invitation link if the form
+// says so (only sign-up links are allowed, so this can't redirect elsewhere).
+export async function logOut(formData?: FormData) {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  const next = String(formData?.get("next") ?? "");
+  redirect(/^\/signup\?email=[^/\\]*$/.test(next) ? next : "/login");
 }

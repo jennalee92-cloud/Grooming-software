@@ -1,9 +1,11 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CircleAlert, History, Scissors } from "lucide-react";
+import { CircleAlert, History, Receipt, Scissors } from "lucide-react";
 import { BEHAVIOR_LABELS, type VisitBehavior } from "@/lib/client-labels";
+import type { MenuItem, PetSize } from "@/lib/service-labels";
 import { saveVisit, type VisitFormState } from "./visit-actions";
+import { VisitServicesPicker } from "./visit-services-picker";
 
 type Props = {
   clientId: string;
@@ -13,9 +15,12 @@ type Props = {
   team: { memberId: string; label: string }[];
   today: string;
   defaults: Record<string, string>;
+  menu: MenuItem[];
+  suggestedSize: PetSize | null;
+  canEditMenu: boolean;
 };
 
-export function VisitForm({ clientId, petId, correctsVisitId, locations, team, today, defaults }: Props) {
+export function VisitForm({ clientId, petId, correctsVisitId, locations, team, today, defaults, menu, suggestedSize, canEditMenu }: Props) {
   const [state, formAction, pending] = useActionState<VisitFormState, FormData>(saveVisit, undefined);
   const v = state?.values ?? defaults;
   const [removing, setRemoving] = useState(v.remove === "on");
@@ -74,12 +79,6 @@ export function VisitForm({ clientId, petId, correctsVisitId, locations, team, t
           </label>
         </div>
 
-        <label className="field" htmlFor="visit-services">
-          <span>Services</span>
-          <input id="visit-services" name="services" maxLength={300} autoComplete="off" defaultValue={v.services}
-            placeholder="For example: full groom, nails, teeth" />
-        </label>
-
         <div className="field" role="radiogroup" aria-labelledby="visit-behavior-label">
           <span id="visit-behavior-label">How did they do?</span>
           <div className="choice-row">
@@ -105,10 +104,22 @@ export function VisitForm({ clientId, petId, correctsVisitId, locations, team, t
         </label>
       </fieldset>
 
+      <fieldset className="form-section" disabled={removing} hidden={removing}>
+        <legend><Receipt size={15} /> Services and charges</legend>
+        <VisitServicesPicker menu={menu} values={v} suggestedSize={suggestedSize} canEditMenu={canEditMenu} />
+        {/* Visits recorded before the menu existed kept services as text. */}
+        {defaults.services && (
+          <label className="field" htmlFor="visit-services">
+            <span>Services as first written <em className="field-optional">from before the menu</em></span>
+            <input id="visit-services" name="services" maxLength={300} autoComplete="off" defaultValue={v.services} />
+          </label>
+        )}
+      </fieldset>
+
       {/* Removing still sends the original details so the record stays complete. */}
       {removing && (
         <>
-          {(["visitedOn", "locationId", "groomerMemberId", "weightLbs", "services", "behavior", "cutDetails", "notes"] as const).map((k) => (
+          {(["visitedOn", "locationId", "groomerMemberId", "weightLbs", "petSize", "services", "behavior", "cutDetails", "notes"] as const).map((k) => (
             <input key={k} type="hidden" name={k} value={defaults[k] ?? ""} />
           ))}
         </>
