@@ -17,7 +17,7 @@ import { getWorkspaces, ROLE_LABELS, type Workspace } from "@/lib/dal";
 
 type Props = {
   workspace: Workspace;
-  active: "overview" | "team" | "setup";
+  active: "overview" | "clients" | "team" | "setup";
   crumb: string;
   topbar?: React.ReactNode;
   children: React.ReactNode;
@@ -81,10 +81,10 @@ export async function AppShell({ workspace, active, crumb, topbar, children }: P
         <nav className="side-nav" aria-label="Main navigation">
           <span className="nav-caption">Workspace</span>
           {navLink("overview", "/", <LayoutDashboard size={18} />, "Overview")}
+          {navLink("clients", "/clients", <Dog size={18} />, "Clients & pets")}
           {navLink("team", "/team", <Users size={18} />, "Team")}
           {navLink("setup", "/setup", <Settings2 size={18} />, "Workspace setup")}
           <span className="nav-caption nav-caption-spaced">Coming into focus</span>
-          <div className="nav-preview"><Dog size={18} /><span>Clients &amp; pets</span></div>
           <div className="nav-preview"><ClipboardCheck size={18} /><span>Daily operations</span></div>
           <div className="nav-preview"><FileText size={18} /><span>Resources</span></div>
         </nav>

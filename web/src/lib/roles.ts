@@ -27,6 +27,10 @@ export const INVITABLE_ROLES: MemberRole[] = ["admin", "manager", "front_desk", 
 
 export const canManageTeam = (role: MemberRole) => role === "owner" || role === "admin";
 
+// Mirrors the database rules for clients and pets.
+export const canEditClients = (role: MemberRole) => role !== "bather";
+export const canArchiveClients = (role: MemberRole) => role === "owner" || role === "admin" || role === "manager";
+
 // Roles the caller may hand out. Only the owner can grant admin.
 export const assignableRoles = (callerRole: MemberRole) =>
   INVITABLE_ROLES.filter((r) => r !== "admin" || callerRole === "owner");

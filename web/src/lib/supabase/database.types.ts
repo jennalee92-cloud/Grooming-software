@@ -83,6 +83,84 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          address: string | null
+          alt_phone: string | null
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          emergency_contact: string | null
+          first_name: string
+          home_location_id: string | null
+          id: string
+          last_name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          preferred_contact:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          alt_phone?: string | null
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          emergency_contact?: string | null
+          first_name: string
+          home_location_id?: string | null
+          id?: string
+          last_name?: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          preferred_contact?:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          alt_phone?: string | null
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          emergency_contact?: string | null
+          first_name?: string
+          home_location_id?: string | null
+          id?: string
+          last_name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          preferred_contact?:
+            | Database["public"]["Enums"]["contact_method"]
+            | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clients_organization_id_home_location_id_fkey"
+            columns: ["organization_id", "home_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       invitation_locations: {
         Row: {
           invitation_id: string
@@ -329,6 +407,93 @@ export type Database = {
         }
         Relationships: []
       }
+      pets: {
+        Row: {
+          allergies: string | null
+          archived_at: string | null
+          birth_date: string | null
+          breed: string | null
+          client_id: string
+          coat: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          fixed: boolean | null
+          grooming_instructions: string | null
+          handle_with_care: boolean
+          id: string
+          medical_notes: string | null
+          name: string
+          organization_id: string
+          sex: Database["public"]["Enums"]["pet_sex"]
+          species: Database["public"]["Enums"]["pet_species"]
+          temperament: string | null
+          updated_at: string
+          weight_lbs: number | null
+        }
+        Insert: {
+          allergies?: string | null
+          archived_at?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          client_id: string
+          coat?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          fixed?: boolean | null
+          grooming_instructions?: string | null
+          handle_with_care?: boolean
+          id?: string
+          medical_notes?: string | null
+          name: string
+          organization_id: string
+          sex?: Database["public"]["Enums"]["pet_sex"]
+          species?: Database["public"]["Enums"]["pet_species"]
+          temperament?: string | null
+          updated_at?: string
+          weight_lbs?: number | null
+        }
+        Update: {
+          allergies?: string | null
+          archived_at?: string | null
+          birth_date?: string | null
+          breed?: string | null
+          client_id?: string
+          coat?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          fixed?: boolean | null
+          grooming_instructions?: string | null
+          handle_with_care?: boolean
+          id?: string
+          medical_notes?: string | null
+          name?: string
+          organization_id?: string
+          sex?: Database["public"]["Enums"]["pet_sex"]
+          species?: Database["public"]["Enums"]["pet_species"]
+          temperament?: string | null
+          updated_at?: string
+          weight_lbs?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pets_organization_id_client_id_fkey"
+            columns: ["organization_id", "client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "pets_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -374,8 +539,32 @@ export type Database = {
         Args: { p_invitation_id: string }
         Returns: undefined
       }
+      search_clients: {
+        Args: {
+          p_include_archived?: boolean
+          p_organization_id: string
+          p_query?: string
+        }
+        Returns: {
+          archived_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          pets: Json
+          phone: string
+        }[]
+      }
+      set_client_archived: {
+        Args: { p_archived: boolean; p_client_id: string }
+        Returns: undefined
+      }
       set_member_active: {
         Args: { p_active: boolean; p_member_id: string }
+        Returns: undefined
+      }
+      set_pet_archived: {
+        Args: { p_archived: boolean; p_pet_id: string }
         Returns: undefined
       }
       team_directory: {
@@ -403,6 +592,7 @@ export type Database = {
       }
     }
     Enums: {
+      contact_method: "call" | "text" | "email"
       member_role:
         | "owner"
         | "admin"
@@ -411,6 +601,8 @@ export type Database = {
         | "bather"
         | "front_desk"
       member_status: "active" | "deactivated"
+      pet_sex: "female" | "male" | "unknown"
+      pet_species: "dog" | "cat" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -541,6 +733,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      contact_method: ["call", "text", "email"],
       member_role: [
         "owner",
         "admin",
@@ -550,6 +743,8 @@ export const Constants = {
         "front_desk",
       ],
       member_status: ["active", "deactivated"],
+      pet_sex: ["female", "male", "unknown"],
+      pet_species: ["dog", "cat", "other"],
     },
   },
 } as const
