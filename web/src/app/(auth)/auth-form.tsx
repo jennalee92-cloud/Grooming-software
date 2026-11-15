@@ -18,6 +18,8 @@ export function AuthForm({ mode, action, notice, defaultEmail }: Props) {
 
   return (
     <form action={formAction} className="auth-form" noValidate>
+      {/* Signing up from an invitation link: land on the invitation, not business setup. */}
+      {isSignup && defaultEmail && <input type="hidden" name="invited" value="1" />}
       {notice && !state?.error && <p className="form-notice">{notice}</p>}
       {state?.error && (
         <p className="form-error" role="alert"><CircleAlert size={16} /> {state.error}</p>

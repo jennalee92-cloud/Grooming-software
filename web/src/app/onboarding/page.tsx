@@ -26,16 +26,13 @@ export default async function OnboardingPage() {
       title={invited ? "Join" : "Tell us about"}
       accent={invited ? "your team." : "your salon."}
       lede={invited
-        ? "Accept an invitation to join a business that already uses Grooming Desk."
+        ? "Accept to join the business with the role and locations they chose for you."
         : "This creates your private workspace. You'll be its owner, and only people you invite will be able to see it."}
     >
-      {invited && (
-        <>
-          <InvitationList invitations={invitations.map((i) => ({ ...i, expiresLabel: shortDate(i.expiresAt) }))} />
-          <div className="or-divider"><span>or start your own business</span></div>
-        </>
-      )}
-      <OnboardingForm suggestedName={suggestedName} />
+      {/* Invited people are here to join a team, so they only see their invitations. */}
+      {invited
+        ? <InvitationList invitations={invitations.map((i) => ({ ...i, expiresLabel: shortDate(i.expiresAt) }))} />
+        : <OnboardingForm suggestedName={suggestedName} />}
       <form action={logOut} className="auth-switch">
         Signed in as {user.email}. <button type="submit" className="link-button">Log out</button>
       </form>

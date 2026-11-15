@@ -12,6 +12,9 @@ const MIN_PASSWORD = 8;
 export async function signUp(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  // Invited staff go straight to their invitation; owners go to business setup.
+  const invited = formData.get("invited") === "1";
+  const landing = invited ? "/invitations" : "/onboarding";
 
   if (!EMAIL_PATTERN.test(email)) return { error: "Enter a valid email address.", email };
   if (password.length < MIN_PASSWORD) {
@@ -22,7 +25,7 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: `${await siteOrigin()}/auth/confirm?next=/onboarding` },
+    options: { emailRedirectTo: `${await siteOrigin()}/auth/confirm?next=${landing}` },
   });
 
   if (error) {
@@ -36,9 +39,9 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
   }
 
   // Email confirmation turned off in Supabase: the user is already signed in.
-  if (data.session) redirect("/onboarding");
+  if (data.session) redirect(landing);
 
-  redirect(`/check-email?email=${encodeURIComponent(email)}`);
+  redirect(`/check-email?email=${encodeURIComponent(email)}${invited ? "&invited=1" : ""}`);
 }
 
 export async function logIn(_prev: AuthFormState, formData: FormData): Promise<AuthFormState> {

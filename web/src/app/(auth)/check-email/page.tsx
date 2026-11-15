@@ -9,8 +9,9 @@ export const metadata: Metadata = { title: "Check your email | Grooming Desk" };
 export const instant = false;
 
 export default async function CheckEmailPage({ searchParams }: PageProps<"/check-email">) {
-  const { email } = await searchParams;
+  const { email, invited } = await searchParams;
   const address = typeof email === "string" && email.length <= 254 ? email : null;
+  const finish = invited === "1" ? "finish creating your account and see your invitation" : "finish creating your account";
 
   return (
     <AuthFrame
@@ -18,8 +19,8 @@ export default async function CheckEmailPage({ searchParams }: PageProps<"/check
       title="Check your"
       accent="email."
       lede={address
-        ? `We sent a confirmation link to ${address}. Click it to finish creating your account.`
-        : "We sent you a confirmation link. Click it to finish creating your account."}
+        ? `We sent a confirmation link to ${address}. Click it to ${finish}.`
+        : `We sent you a confirmation link. Click it to ${finish}.`}
     >
       <div className="auth-panel">
         <MailCheck size={20} />
