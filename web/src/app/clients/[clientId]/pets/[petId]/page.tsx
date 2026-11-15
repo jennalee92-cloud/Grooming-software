@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarClock, CircleCheck, PawPrint, PencilLine, Plus, Scissors, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CircleCheck, PawPrint, PencilLine, Plus, Scissors, TriangleAlert } from "lucide-react";
 import { ActionButton } from "@/components/action-button";
 import { AppShell } from "@/components/app-shell";
 import { SEX_LABELS, SPECIES_LABELS, clientName, getClientWithPets, petAge } from "@/lib/clients";
@@ -9,8 +9,10 @@ import { requireUser, requireWorkspace } from "@/lib/dal";
 import { UUID_PATTERN } from "@/lib/db-errors";
 import { dayLabel } from "@/lib/format";
 import { canArchiveClients, canEditClients } from "@/lib/roles";
-import { getPetVisits, getTeamOptions } from "@/lib/visits";
+import { getPetVaccinations } from "@/lib/vaccinations";
+import { getPetVisits, getTeamOptions, todayIn } from "@/lib/visits";
 import { setPetArchived } from "../../../actions";
+import { VaccineAlert, VaccinationsSection } from "../../../vaccinations-section";
 import { VisitHistory } from "../../../visit-history";
 
 export const metadata: Metadata = { title: "Pet profile | Grooming Desk" };
@@ -19,6 +21,12 @@ const VISIT_NOTICES: Record<string, string> = {
   added: "Visit recorded.",
   corrected: "Correction saved. The earlier version is kept in the history.",
   removed: "Visit removed. It's kept in the history with your reason.",
+};
+
+const VACCINE_NOTICES: Record<string, string> = {
+  added: "Vaccination added.",
+  saved: "Vaccination record updated.",
+  removed: "Vaccination record removed.",
 };
 
 // Depends on who is logged in, so it renders per request.
@@ -39,7 +47,13 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
   // Every role records visits; archived pets and households are read-only.
   const canRecord = !archived && !record.client.archived_at;
   const basePath = `/clients/${clientId}/pets/${pet.id}`;
-  const [user, history, team] = await Promise.all([requireUser(), getPetVisits(workspace, pet.id), getTeamOptions(workspace)]);
+  const home = workspace.locations.find((l) => l.id === record.client.home_location_id) ?? workspace.locations[0];
+  const [user, history, team, vaccines] = await Promise.all([
+    requireUser(),
+    getPetVisits(workspace, pet.id),
+    getTeamOptions(workspace),
+    getPetVaccinations(workspace, pet.id, pet.species, todayIn(home?.timezone)),
+  ]);
   const lastVisit = history.visits[0]?.current.visited_on;
   const canArchive = canArchiveClients(workspace.role) && !record.client.archived_at;
   const age = petAge(pet.birth_date);
@@ -72,6 +86,9 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
         {notice.created === "1" && <p className="form-notice"><CircleCheck size={16} /> Pet added.</p>}
         {notice.saved === "1" && <p className="form-notice"><CircleCheck size={16} /> Changes saved.</p>}
         {typeof notice.visit === "string" && VISIT_NOTICES[notice.visit] && <p className="form-notice"><CircleCheck size={16} /> {VISIT_NOTICES[notice.visit]}</p>}
+        {typeof notice.vaccine === "string" && VACCINE_NOTICES[notice.vaccine] && <p className="form-notice"><CircleCheck size={16} /> {VACCINE_NOTICES[notice.vaccine]}</p>}
+
+        {!archived && <VaccineAlert vaccines={vaccines} petName={pet.name} />}
 
         {pet.handle_with_care && (
           <div className="caution-banner" role="note">
@@ -133,10 +150,7 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
           />
         </section>
 
-        <section className="team-card" aria-labelledby="vax-title">
-          <div className="section-heading compact-heading"><div><span className="section-eyebrow">COMING NEXT</span><h2 id="vax-title">Vaccinations</h2></div><CalendarClock size={18} className="team-card-icon" /></div>
-          <p className="team-empty">Vaccination records with expiry alerts are the next part being built. They&apos;ll appear here.</p>
-        </section>
+        <VaccinationsSection vaccines={vaccines} basePath={basePath} canEdit={canEdit} />
       </div>
     </AppShell>
   );

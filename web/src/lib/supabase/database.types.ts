@@ -503,6 +503,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pet_vaccinations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          expires_on: string
+          given_on: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          pet_id: string
+          removed_at: string | null
+          updated_at: string
+          vaccine: string
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          expires_on: string
+          given_on?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          pet_id: string
+          removed_at?: string | null
+          updated_at?: string
+          vaccine: string
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          expires_on?: string
+          given_on?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          pet_id?: string
+          removed_at?: string | null
+          updated_at?: string
+          vaccine?: string
+          verified?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pet_vaccinations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pet_vaccinations_organization_id_pet_id_fkey"
+            columns: ["organization_id", "pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       pets: {
         Row: {
           allergies: string | null
@@ -825,6 +885,18 @@ export type Database = {
           p_role: Database["public"]["Enums"]["member_role"]
         }
         Returns: undefined
+      }
+      vaccines_due: {
+        Args: { p_organization_id: string; p_within_days?: number }
+        Returns: {
+          client_first_name: string
+          client_id: string
+          client_last_name: string
+          expires_on: string
+          pet_id: string
+          pet_name: string
+          vaccine: string
+        }[]
       }
     }
     Enums: {

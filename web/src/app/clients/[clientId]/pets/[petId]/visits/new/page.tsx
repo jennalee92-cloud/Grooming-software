@@ -9,7 +9,9 @@ import { UUID_PATTERN } from "@/lib/db-errors";
 import { canManageServices } from "@/lib/roles";
 import { suggestSize } from "@/lib/service-labels";
 import { getMenu } from "@/lib/services";
+import { getPetVaccinations } from "@/lib/vaccinations";
 import { getPetVisits, getTeamOptions, todayIn } from "@/lib/visits";
+import { VaccineAlert } from "../../../../../vaccinations-section";
 import { VisitForm } from "../../../../../visit-form";
 
 export const metadata: Metadata = { title: "Record visit | Grooming Desk" };
@@ -27,12 +29,17 @@ export default async function NewVisitPage({ params }: PageProps<"/clients/[clie
   if (!record || !pet) notFound();
   if (pet.archived_at || record.client.archived_at) redirect(`/clients/${clientId}/pets/${petId}`);
 
-  const [allTeam, menu, { visits }] = await Promise.all([getTeamOptions(workspace), getMenu(workspace), getPetVisits(workspace, petId)]);
+  const home = workspace.locations.find((l) => l.id === record.client.home_location_id);
+  const timeZone = (home ?? workspace.locations[0])?.timezone;
+  const [allTeam, menu, { visits }, vaccines] = await Promise.all([
+    getTeamOptions(workspace),
+    getMenu(workspace),
+    getPetVisits(workspace, petId),
+    getPetVaccinations(workspace, petId, pet.species, todayIn(timeZone)),
+  ]);
   const team = allTeam.filter((m) => m.active);
   // Size from the last visit that recorded one, else from the pet's weight.
   const lastSize = visits.find((v) => v.current.pet_size)?.current.pet_size ?? null;
-  const home = workspace.locations.find((l) => l.id === record.client.home_location_id);
-  const timeZone = (home ?? workspace.locations[0])?.timezone;
 
   return (
     <AppShell workspace={workspace} active="clients" crumb="Record visit">
@@ -40,6 +47,7 @@ export default async function NewVisitPage({ params }: PageProps<"/clients/[clie
         <Link href={`/clients/${clientId}/pets/${petId}`} className="setup-back"><ArrowLeft size={15} /> Back to {pet.name}</Link>
         <span className="overline setup-overline"><Scissors size={14} /> NEW VISIT</span>
         <h1>Record a visit for<br /><em>{pet.name}.</em></h1>
+        <VaccineAlert vaccines={vaccines} petName={pet.name} />
         {pet.handle_with_care && (
           <div className="caution-banner" role="note"><TriangleAlert size={18} /><div><strong>Handle with care</strong>{pet.temperament && <p>{pet.temperament}</p>}</div></div>
         )}

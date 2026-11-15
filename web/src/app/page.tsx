@@ -17,6 +17,8 @@ import { AppShell } from "@/components/app-shell";
 import { getMyInvitations, requireWorkspace } from "@/lib/dal";
 import { countActivePets } from "@/lib/clients";
 import { canManageTeam } from "@/lib/roles";
+import { getVaccinesDue } from "@/lib/vaccinations";
+import { DUE_SOON_DAYS, vaccineDate, vaccineStatus } from "@/lib/vaccine-labels";
 import { countVisitsOn, todayIn } from "@/lib/visits";
 import { getOpenInvitations, getTeam } from "./team/team-data";
 
@@ -26,12 +28,14 @@ export const instant = false;
 export default async function Home() {
   const workspace = await requireWorkspace();
   const manager = canManageTeam(workspace.role);
-  const [petCount, visitsToday, invitationsForMe, team, openInvites] = await Promise.all([
+  const today = todayIn(workspace.locations[0]?.timezone);
+  const [petCount, visitsToday, invitationsForMe, team, openInvites, vaccinesDue] = await Promise.all([
     countActivePets(workspace),
-    countVisitsOn(workspace, todayIn(workspace.locations[0]?.timezone)),
+    countVisitsOn(workspace, today),
     getMyInvitations(),
     manager ? getTeam(workspace) : Promise.resolve([]),
     manager ? getOpenInvitations(workspace) : Promise.resolve([]),
+    getVaccinesDue(workspace),
   ]);
 
   const firstName = workspace.displayName?.split(" ")[0];
@@ -97,6 +101,30 @@ export default async function Home() {
             <article className="metric-card metric-card-lime"><div className="metric-label"><CalendarDays size={16} /><span>Today&apos;s visits</span></div><div className="metric-value">{visitsToday}</div><div className="metric-foot">{visitsToday === 0 ? "Record visits from a pet's profile" : "Recorded so far today"}</div></article>
           </div>
         </section>
+
+        {vaccinesDue.length > 0 && (
+          <section className="team-card vax-due" aria-labelledby="vax-due-title">
+            <div className="section-heading compact-heading">
+              <div><span className="section-eyebrow">EXPIRED OR DUE IN {DUE_SOON_DAYS} DAYS</span><h2 id="vax-due-title">Vaccinations to follow up</h2></div>
+              <span className="checklist-count">{String(vaccinesDue.length).padStart(2, "0")}</span>
+            </div>
+            <ul className="vax-list">
+              {vaccinesDue.slice(0, 12).map((v) => {
+                const status = vaccineStatus(v.expires_on, today);
+                return (
+                  <li key={`${v.pet_id}-${v.vaccine}`}>
+                    <Link href={`/clients/${v.client_id}/pets/${v.pet_id}#vaccinations`} className="vax-copy">
+                      <strong>{v.pet_name} · {v.vaccine}</strong>
+                      <small>{`${v.client_first_name} ${v.client_last_name}`.trim()} · {status === "expired" ? "expired" : "expires"} {vaccineDate(v.expires_on)}</small>
+                    </Link>
+                    <span className={`vax-status vax-${status}`}>{status === "expired" ? "Expired" : "Due soon"}</span>
+                  </li>
+                );
+              })}
+            </ul>
+            {vaccinesDue.length > 12 && <p className="team-empty">And {vaccinesDue.length - 12} more.</p>}
+          </section>
+        )}
 
         <section className={`bottom-grid${manager ? "" : " bottom-grid-single"}`} aria-label="Workspace setup details">
           {manager && (
