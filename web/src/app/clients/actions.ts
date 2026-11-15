@@ -82,7 +82,7 @@ export async function saveClient(_prev: FormState, fd: FormData): Promise<FormSt
   const clientId = text(fd, "clientId");
   let workspace: Workspace;
   let row: ReturnType<typeof parseClient>;
-  let firstPet: { name: string; breed: string | null; species: PetSpecies } | null = null;
+  let firstPet: { name: string; breed: string | null; species: PetSpecies; birth_date: string | null; weight_lbs: number | null } | null = null;
   let rabies: ReturnType<typeof parseRabies> = null;
 
   try {
@@ -94,10 +94,14 @@ export async function saveClient(_prev: FormState, fd: FormData): Promise<FormSt
     if (rabies && !petName) throw new Invalid("Add the pet's name so the rabies record has a pet to go with.");
     if (!clientId && petName) {
       const species = text(fd, "petSpecies");
+      const birthDate = text(fd, "petBirthDate");
+      if (birthDate) pastDate(birthDate, "1980-01-01", "Enter an age or birthday that isn't in the future, or leave it blank.");
       firstPet = {
         name: petName,
         breed: optional(fd, "petBreed", 80, "the breed"),
         species: SPECIES.includes(species as PetSpecies) ? (species as PetSpecies) : "dog",
+        birth_date: birthDate || null,
+        weight_lbs: weightLbs(fd, "petWeightLbs"),
       };
     }
   } catch (e) {

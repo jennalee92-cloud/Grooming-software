@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { AgeFields } from "@/components/age-fields";
 import { BreedPicker } from "@/components/breed-picker";
 import { CircleAlert, Dog } from "lucide-react";
 import { CONTACT_LABELS, SPECIES_LABELS, type ContactMethod, type PetSpecies } from "@/lib/client-labels";
@@ -106,6 +107,13 @@ export function ClientForm({ clientId, locations, defaults = {}, today = "" }: P
           <div className="field">
             <label htmlFor="pet-breed"><span>Breed</span></label>
             <BreedPicker id="pet-breed" name="petBreed" species={petSpecies} defaultValue={v.petBreed} />
+          </div>
+          <div className="field-row">
+            <AgeFields idPrefix="first-pet" name="petBirthDate" defaultBirthDate={v.petBirthDate} />
+            <label className="field" htmlFor="pet-weight">
+              <span>Weight (lbs)</span>
+              <input id="pet-weight" name="petWeightLbs" type="number" inputMode="decimal" min="0.1" max="399.9" step="0.1" defaultValue={v.petWeightLbs} />
+            </label>
           </div>
         </fieldset>
       )}

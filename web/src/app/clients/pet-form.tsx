@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { AgeFields } from "@/components/age-fields";
 import { BreedPicker } from "@/components/breed-picker";
 import { CircleAlert, HeartPulse, PawPrint, TriangleAlert } from "lucide-react";
 import { SEX_LABELS, SPECIES_LABELS, type PetSex, type PetSpecies } from "@/lib/client-labels";
@@ -69,10 +70,7 @@ export function PetForm({ clientId, petId, defaults = {}, today = "" }: Props) {
         </div>
 
         <div className="field-row">
-          <label className="field" htmlFor="pet-birth">
-            <span>Birth date <em className="optional">or best guess</em></span>
-            <input id="pet-birth" name="birthDate" type="date" min="1980-01-01" defaultValue={v.birthDate} />
-          </label>
+          <AgeFields idPrefix="pet" name="birthDate" defaultBirthDate={v.birthDate} />
           <label className="field" htmlFor="pet-weight">
             <span>Weight (lbs)</span>
             <input id="pet-weight" name="weightLbs" type="number" inputMode="decimal" min="0.1" max="399.9" step="0.1" defaultValue={v.weightLbs} />

@@ -63,7 +63,7 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
     ["Breed", pet.breed],
     ["Sex", pet.sex === "unknown" ? null : SEX_LABELS[pet.sex]],
     ["Spayed or neutered", pet.fixed === null ? null : pet.fixed ? "Yes" : "No"],
-    ["Age", age ? `${age} (born ${pet.birth_date})` : null],
+    ["Age", age],
     ["Weight", pet.weight_lbs ? `${pet.weight_lbs} lbs` : null],
     ["Color", pet.color],
     ["Coat", pet.coat],

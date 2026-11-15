@@ -443,6 +443,14 @@ h1 em { color: #ac6d58; font-weight: 400; }
 .visit-charges td:last-child { color: var(--forest-deep); font-weight: 650; text-align: right; white-space: nowrap; }
 .visit-charges s { margin-right: 4px; color: #a1a9a2; font-weight: 500; }
 .visit-charges tfoot th, .visit-charges tfoot td { border-top: 1px solid #e5e3da; padding-top: 6px; font-weight: 750; }
+/* ---------- Age fields ---------- */
+.age-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.age-part { position: relative; display: block; }
+.field .age-part input { padding-right: 62px; }
+.age-part > span { position: absolute; top: 50%; right: 11px; transform: translateY(-50%); color: #7e887f; font-size: 13px; pointer-events: none; }
+.age-birthday { display: grid; gap: 4px; margin-top: 2px; }
+.field .age-birthday input { min-height: 38px; font-size: 14px; }
+
 /* ---------- Breed picker ---------- */
 .field > label > span { color: #3f4b43; font-size: 12.5px; font-weight: 650; }
 .breed-picker { position: relative; }
