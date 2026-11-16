@@ -1,7 +1,11 @@
 import Link from "next/link";
-import { PencilLine, Plus, ShieldCheck, Syringe, TriangleAlert } from "lucide-react";
+import { Camera, FileText, Paperclip, PencilLine, Plus, ShieldCheck, Syringe, TriangleAlert } from "lucide-react";
+import { ActionButton } from "@/components/action-button";
+import { shortDate } from "@/lib/format";
 import type { PetVaccines } from "@/lib/vaccinations";
 import { STATUS_LABELS, vaccineDate } from "@/lib/vaccine-labels";
+import type { VetRecord } from "@/lib/vet-records";
+import { removeVetRecord } from "./vaccination-actions";
 
 // Warning shown at the top of the pet page and the visit form.
 export function VaccineAlert({ vaccines, petName }: { vaccines: PetVaccines; petName: string }) {
@@ -24,10 +28,25 @@ export function VaccineAlert({ vaccines, petName }: { vaccines: PetVaccines; pet
   );
 }
 
-type Props = { vaccines: PetVaccines; basePath: string; canEdit: boolean };
+type Props = { vaccines: PetVaccines; records: VetRecord[]; petId: string; basePath: string; canEdit: boolean };
 
-export function VaccinationsSection({ vaccines, basePath, canEdit }: Props) {
+function RecordThumb({ record }: { record: VetRecord }) {
+  if (!record.url) return <span className="vet-thumb vet-thumb-missing"><FileText size={22} /></span>;
+  return (
+    <a href={record.url} target="_blank" rel="noopener noreferrer" className="vet-thumb" title={`Open ${record.fileName}`}>
+      {record.isImage
+        // Signed links to a private bucket, so next/image can't optimize them.
+        // eslint-disable-next-line @next/next/no-img-element
+        ? <img src={record.url} alt={`Vet record: ${record.fileName}`} loading="lazy" />
+        : <span className="vet-thumb-file"><FileText size={22} /><small>{record.isPdf ? "PDF" : "Photo"}</small></span>}
+    </a>
+  );
+}
+
+export function VaccinationsSection({ vaccines, records, petId, basePath, canEdit }: Props) {
   const { current, earlier, missingRabies } = vaccines;
+  const recordsFor = (vaccinationId: string) => records.filter((r) => r.vaccinationId === vaccinationId);
+  const vaccineName = new Map([...current, ...earlier].map((v) => [v.id, v.vaccine]));
 
   return (
     <section className="team-card" id="vaccinations" aria-labelledby="vax-title">
@@ -51,6 +70,9 @@ export function VaccinationsSection({ vaccines, basePath, canEdit }: Props) {
                   {v.given_on && ` · given ${vaccineDate(v.given_on)}`}
                 </small>
                 {v.notes && <small>{v.notes}</small>}
+                {recordsFor(v.id).map((r) => r.url && (
+                  <a key={r.id} href={r.url} target="_blank" rel="noopener noreferrer" className="vax-record-link"><Paperclip size={12} /> View vet record</a>
+                ))}
               </div>
               <div className="member-side">
                 {v.verified && <span className="vax-proof"><ShieldCheck size={13} /> Proof seen</span>}
@@ -88,6 +110,37 @@ export function VaccinationsSection({ vaccines, basePath, canEdit }: Props) {
           </ul>
         </details>
       )}
+
+      <div className="vet-records" id="vet-records">
+        <div className="vet-records-head">
+          <span className="section-eyebrow">VET RECORDS</span>
+          {canEdit && <Link href={`${basePath}/vet-records/new`} className="button-quiet"><Camera size={14} /> Upload vet record</Link>}
+        </div>
+        {records.length === 0 ? (
+          <p className="team-empty">No vet records uploaded yet. Upload a photo of the vaccination certificate so the whole team can see the proof.</p>
+        ) : (
+          <ul className="vet-grid">
+            {records.map((r) => (
+              <li key={r.id}>
+                <RecordThumb record={r} />
+                <small className="vet-caption">
+                  {r.vaccinationId ? vaccineName.get(r.vaccinationId) ?? "Vaccine record" : "General record"} · {shortDate(r.uploadedAt)}
+                </small>
+                {canEdit && (
+                  <ActionButton
+                    action={removeVetRecord}
+                    fields={{ documentId: r.id, petId }}
+                    label="Remove"
+                    pendingLabel="Removing…"
+                    confirm="Remove this vet record from the pet's file? Use this if it was uploaded by mistake or for the wrong pet."
+                    className="link-button vet-remove"
+                  />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }

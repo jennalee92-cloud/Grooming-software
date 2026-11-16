@@ -10,6 +10,7 @@ import { UUID_PATTERN } from "@/lib/db-errors";
 import { dayLabel } from "@/lib/format";
 import { canArchiveClients, canEditClients } from "@/lib/roles";
 import { getPetVaccinations } from "@/lib/vaccinations";
+import { getVetRecords } from "@/lib/vet-records";
 import { getPetVisits, getTeamOptions, todayIn } from "@/lib/visits";
 import { setPetArchived } from "../../../actions";
 import { VaccineAlert, VaccinationsSection } from "../../../vaccinations-section";
@@ -27,6 +28,7 @@ const VACCINE_NOTICES: Record<string, string> = {
   added: "Vaccination added.",
   saved: "Vaccination record updated.",
   removed: "Vaccination record removed.",
+  uploaded: "Vet record uploaded.",
 };
 
 // Depends on who is logged in, so it renders per request.
@@ -48,11 +50,12 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
   const canRecord = !archived && !record.client.archived_at;
   const basePath = `/clients/${clientId}/pets/${pet.id}`;
   const home = workspace.locations.find((l) => l.id === record.client.home_location_id) ?? workspace.locations[0];
-  const [user, history, team, vaccines] = await Promise.all([
+  const [user, history, team, vaccines, vetRecords] = await Promise.all([
     requireUser(),
     getPetVisits(workspace, pet.id),
     getTeamOptions(workspace),
     getPetVaccinations(workspace, pet.id, pet.species, todayIn(home?.timezone)),
+    getVetRecords(workspace, pet.id),
   ]);
   const lastVisit = history.visits[0]?.current.visited_on;
   const canArchive = canArchiveClients(workspace.role) && !record.client.archived_at;
@@ -87,6 +90,7 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
         {notice.saved === "1" && <p className="form-notice"><CircleCheck size={16} /> Changes saved.</p>}
         {typeof notice.visit === "string" && VISIT_NOTICES[notice.visit] && <p className="form-notice"><CircleCheck size={16} /> {VISIT_NOTICES[notice.visit]}</p>}
         {typeof notice.vaccine === "string" && VACCINE_NOTICES[notice.vaccine] && <p className="form-notice"><CircleCheck size={16} /> {VACCINE_NOTICES[notice.vaccine]}</p>}
+        {notice.vaccine === "uploadError" && <p className="form-error" role="alert"><TriangleAlert size={16} /> The vaccination was saved, but the vet record photo didn&apos;t upload. Use Upload vet record below to try again.</p>}
         {notice.vaccine === "error" && <p className="form-error" role="alert"><TriangleAlert size={16} /> {pet.name} was saved, but the rabies record wasn&apos;t. Add it in the Vaccinations section below.</p>}
 
         {!archived && <VaccineAlert vaccines={vaccines} petName={pet.name} />}
@@ -151,7 +155,7 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
           />
         </section>
 
-        <VaccinationsSection vaccines={vaccines} basePath={basePath} canEdit={canEdit} />
+        <VaccinationsSection vaccines={vaccines} records={vetRecords} petId={pet.id} basePath={basePath} canEdit={canEdit} />
       </div>
     </AppShell>
   );

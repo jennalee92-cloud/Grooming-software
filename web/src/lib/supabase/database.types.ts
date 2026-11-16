@@ -712,6 +712,70 @@ export type Database = {
           },
         ]
       }
+      vaccination_documents: {
+        Row: {
+          content_type: string
+          created_at: string
+          file_name: string
+          id: string
+          organization_id: string
+          pet_id: string
+          removed_at: string | null
+          size_bytes: number
+          storage_path: string
+          uploaded_by: string | null
+          vaccination_id: string | null
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          file_name: string
+          id?: string
+          organization_id: string
+          pet_id: string
+          removed_at?: string | null
+          size_bytes: number
+          storage_path: string
+          uploaded_by?: string | null
+          vaccination_id?: string | null
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          organization_id?: string
+          pet_id?: string
+          removed_at?: string | null
+          size_bytes?: number
+          storage_path?: string
+          uploaded_by?: string | null
+          vaccination_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vaccination_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vaccination_documents_organization_id_pet_id_fkey"
+            columns: ["organization_id", "pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "vaccination_documents_organization_id_vaccination_id_fkey"
+            columns: ["organization_id", "vaccination_id"]
+            isOneToOne: false
+            referencedRelation: "pet_vaccinations"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       visit_services: {
         Row: {
           created_at: string

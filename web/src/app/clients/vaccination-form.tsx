@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CircleAlert, ShieldCheck, Syringe } from "lucide-react";
+import { Camera, CircleAlert, ShieldCheck, Syringe } from "lucide-react";
 import { plusYears } from "@/lib/vaccine-labels";
 import { saveVaccination, type VaccinationFormState } from "./vaccination-actions";
 
@@ -62,6 +62,11 @@ export function VaccinationForm({ clientId, petId, vaccinationId, suggestions, t
 
       <fieldset className="form-section">
         <legend><ShieldCheck size={15} /> Proof</legend>
+        <label className="field" htmlFor="vax-proof">
+          <span><Camera size={13} /> Photo or PDF of the vet record <em className="field-optional">optional, up to 10 MB</em></span>
+          <input id="vax-proof" name="proof" type="file" className="file-input" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" />
+          <small>On a phone you can take the photo right now. Adding one marks the vaccine as proof seen.{state?.error && " If you'd chosen a file, choose it again."}</small>
+        </label>
         <label className="check-option check-option-strong">
           <input type="checkbox" name="verified" defaultChecked={v.verified === "on"} />
           <span>We&apos;ve seen proof from the vet (certificate, invoice or vet portal)</span>
