@@ -84,7 +84,7 @@ export function PetForm({ clientId, petId, defaults = {}, today = "" }: Props) {
         </label>
       </fieldset>
 
-      {!petId && <RabiesFields values={v} today={today} />}
+      {!petId && <RabiesFields values={v} today={today} showRetryHint={Boolean(state?.error)} />}
 
       <fieldset className="form-section">
         <legend><HeartPulse size={15} /> Care and handling</legend>

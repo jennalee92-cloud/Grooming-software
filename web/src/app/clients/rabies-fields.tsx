@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Syringe } from "lucide-react";
+import { Camera, Syringe } from "lucide-react";
 import { plusYears } from "@/lib/vaccine-labels";
 
-type Props = { values: Record<string, string>; today: string };
+type Props = { values: Record<string, string>; today: string; showRetryHint?: boolean };
 
-// Optional rabies record when adding a pet. Field names: rabiesGivenOn,
-// rabiesExpiresOn, rabiesVerified (read by parseRabies on the server).
-export function RabiesFields({ values: v, today }: Props) {
+// Optional rabies record and vet-record photo when adding a pet. Field
+// names: rabiesGivenOn, rabiesExpiresOn, rabiesVerified, vetRecord.
+export function RabiesFields({ values: v, today, showRetryHint = false }: Props) {
   const [givenOn, setGivenOn] = useState(v.rabiesGivenOn ?? "");
   const [expiresOn, setExpiresOn] = useState(v.rabiesExpiresOn ?? "");
 
   return (
     <fieldset className="form-section">
-      <legend><Syringe size={15} /> Rabies vaccine <em className="optional">optional, add other vaccines on the pet&apos;s page</em></legend>
+      <legend><Syringe size={15} /> Rabies and vet records <em className="optional">optional, add other vaccines on the pet&apos;s page</em></legend>
       <div className="field-row">
         <label className="field" htmlFor="rabies-given">
           <span>Date given <em className="optional">if known</em></span>
@@ -36,6 +36,12 @@ export function RabiesFields({ values: v, today }: Props) {
       <label className="check-option">
         <input type="checkbox" name="rabiesVerified" defaultChecked={v.rabiesVerified === "on"} />
         <span>We&apos;ve seen proof from the vet</span>
+      </label>
+      <label className="field" htmlFor="vet-record-file">
+        <span><Camera size={13} /> Photo or PDF of the vet record <em className="optional">optional, up to 10 MB</em></span>
+        <input id="vet-record-file" name="vetRecord" type="file" className="file-input"
+          accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf" />
+        <small>On a phone you can take the photo now. It&apos;s saved privately with the pet{showRetryHint ? ". If you'd chosen a file, choose it again" : ""}.</small>
       </label>
     </fieldset>
   );

@@ -8,6 +8,7 @@ import { UUID_PATTERN, userMessage } from "@/lib/db-errors";
 import { Invalid, optional, pastDate, required, snapshot, text, weightLbs } from "@/lib/form-fields";
 import { canArchiveClients, canEditClients } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
+import { storeVetRecord, vetRecordFile } from "@/lib/vet-records";
 import { parseRabies } from "./rabies";
 
 export type FormState = { error?: string; values?: Record<string, string> } | undefined;
@@ -84,6 +85,7 @@ export async function saveClient(_prev: FormState, fd: FormData): Promise<FormSt
   let row: ReturnType<typeof parseClient>;
   let firstPet: { name: string; breed: string | null; species: PetSpecies; birth_date: string | null; weight_lbs: number | null } | null = null;
   let rabies: ReturnType<typeof parseRabies> = null;
+  let vetRecord: File | null = null;
 
   try {
     workspace = await editableWorkspace();
@@ -91,7 +93,8 @@ export async function saveClient(_prev: FormState, fd: FormData): Promise<FormSt
     row = parseClient(fd, workspace);
     const petName = optional(fd, "petName", 80, "the pet's name");
     rabies = clientId ? null : parseRabies(fd);
-    if (rabies && !petName) throw new Invalid("Add the pet's name so the rabies record has a pet to go with.");
+    vetRecord = clientId ? null : vetRecordFile(fd, "vetRecord");
+    if ((rabies || vetRecord) && !petName) throw new Invalid("Add the pet's name so the vaccination record has a pet to go with.");
     if (!clientId && petName) {
       const species = text(fd, "petSpecies");
       const birthDate = text(fd, "petBirthDate");
@@ -127,12 +130,30 @@ export async function saveClient(_prev: FormState, fd: FormData): Promise<FormSt
     const pet = await supabase.from("pets")
       .insert({ ...firstPet, organization_id: workspace.organizationId, client_id: data.id }).select("id").single();
     if (pet.error) redirect(`/clients/${data.id}?petError=1`);
-    if (rabies) {
-      const vax = await supabase.from("pet_vaccinations").insert({ ...rabies, organization_id: workspace.organizationId, pet_id: pet.data.id });
-      if (vax.error) redirect(`/clients/${data.id}/pets/${pet.data.id}?vaccine=error#vaccinations`);
-    }
+    const problem = await addFirstVaccineRecords(workspace, pet.data.id, rabies, vetRecord);
+    if (problem) redirect(`/clients/${data.id}/pets/${pet.data.id}?vaccine=${problem}#vaccinations`);
   }
   redirect(`/clients/${data.id}?created=1`);
+}
+
+// When a pet is first added: its rabies record and/or a vet-record photo
+// (linked to the rabies record when both are given). Returns a notice key
+// for the pet page if something didn't save.
+async function addFirstVaccineRecords(workspace: Workspace, petId: string, rabies: ReturnType<typeof parseRabies>, file: File | null) {
+  const supabase = await createClient();
+  let rabiesId: string | null = null;
+  if (rabies) {
+    const vax = await supabase.from("pet_vaccinations")
+      .insert({ ...rabies, verified: rabies.verified || file !== null, organization_id: workspace.organizationId, pet_id: petId })
+      .select("id").single();
+    if (vax.error) return "error";
+    rabiesId = vax.data.id;
+  }
+  if (file) {
+    const stored = await storeVetRecord(workspace, petId, file, rabiesId);
+    if (stored.error) return "uploadError";
+  }
+  return null;
 }
 
 export async function setClientArchived(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -158,12 +179,14 @@ export async function savePet(_prev: FormState, fd: FormData): Promise<FormState
   let workspace: Workspace;
   let row: ReturnType<typeof parsePet>;
   let rabies: ReturnType<typeof parseRabies> = null;
+  let vetRecord: File | null = null;
 
   try {
     workspace = await editableWorkspace();
     if (!UUID_PATTERN.test(clientId) || (petId && !UUID_PATTERN.test(petId))) throw new Invalid("That pet isn't valid.");
     row = parsePet(fd);
     rabies = petId ? null : parseRabies(fd);
+    vetRecord = petId ? null : vetRecordFile(fd, "vetRecord");
   } catch (e) {
     if (e instanceof Invalid) return { error: e.message, values };
     throw e;
@@ -182,10 +205,8 @@ export async function savePet(_prev: FormState, fd: FormData): Promise<FormState
   const { data, error } = await supabase.from("pets")
     .insert({ ...row, organization_id: workspace.organizationId, client_id: clientId }).select("id").single();
   if (error) return { error: userMessage(error), values };
-  if (rabies) {
-    const vax = await supabase.from("pet_vaccinations").insert({ ...rabies, organization_id: workspace.organizationId, pet_id: data.id });
-    if (vax.error) redirect(`/clients/${clientId}/pets/${data.id}?created=1&vaccine=error#vaccinations`);
-  }
+  const problem = await addFirstVaccineRecords(workspace, data.id, rabies, vetRecord);
+  if (problem) redirect(`/clients/${clientId}/pets/${data.id}?created=1&vaccine=${problem}#vaccinations`);
   redirect(`/clients/${clientId}/pets/${data.id}?created=1`);
 }
 

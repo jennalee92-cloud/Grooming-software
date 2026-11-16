@@ -90,7 +90,7 @@ export default async function PetPage({ params, searchParams }: PageProps<"/clie
         {notice.saved === "1" && <p className="form-notice"><CircleCheck size={16} /> Changes saved.</p>}
         {typeof notice.visit === "string" && VISIT_NOTICES[notice.visit] && <p className="form-notice"><CircleCheck size={16} /> {VISIT_NOTICES[notice.visit]}</p>}
         {typeof notice.vaccine === "string" && VACCINE_NOTICES[notice.vaccine] && <p className="form-notice"><CircleCheck size={16} /> {VACCINE_NOTICES[notice.vaccine]}</p>}
-        {notice.vaccine === "uploadError" && <p className="form-error" role="alert"><TriangleAlert size={16} /> The vaccination was saved, but the vet record photo didn&apos;t upload. Use Upload vet record below to try again.</p>}
+        {notice.vaccine === "uploadError" && <p className="form-error" role="alert"><TriangleAlert size={16} /> Everything else was saved, but the vet record photo didn&apos;t upload. Use Upload vet record below to try again.</p>}
         {notice.vaccine === "error" && <p className="form-error" role="alert"><TriangleAlert size={16} /> {pet.name} was saved, but the rabies record wasn&apos;t. Add it in the Vaccinations section below.</p>}
 
         {!archived && <VaccineAlert vaccines={vaccines} petName={pet.name} />}

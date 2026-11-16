@@ -117,7 +117,7 @@ export function ClientForm({ clientId, locations, defaults = {}, today = "" }: P
           </div>
         </fieldset>
       )}
-      {isNew && <RabiesFields values={v} today={today} />}
+      {isNew && <RabiesFields values={v} today={today} showRetryHint={Boolean(state?.error)} />}
 
       <button type="submit" className="button-primary invite-submit" disabled={pending}>
         {pending ? "Saving…" : isNew ? "Add client" : "Save changes"}
