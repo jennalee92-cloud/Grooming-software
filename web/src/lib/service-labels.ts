@@ -11,6 +11,9 @@ export const PET_SIZES: PetSize[] = ["small", "medium", "large", "xlarge"];
 // Extra-charge rows (not on the menu) the visit form can send.
 export const MAX_EXTRAS = 10;
 
+// Breed prices one service can have (matches the database function).
+export const MAX_BREED_PRICES = 200;
+
 export const SIZE_LABELS: Record<PetSize, string> = {
   small: "Small",
   medium: "Medium",
@@ -42,22 +45,35 @@ export type MenuItem = {
   pricing: ServicePricing;
   price: number | null;
   sizePrices: Record<PetSize, number | null>;
+  // Salon-set prices for specific breeds, keyed by breedKey().
+  breedPrices: Record<string, number>;
   durationMinutes: number | null;
 };
 
-export const toMenuItem = (s: ServiceRow): MenuItem => ({
+export type BreedPrice = { breed: string; price_cents: number };
+
+// Same breed regardless of spacing or capitals (matches the database).
+export const breedKey = (breed: string) => breed.trim().toLowerCase();
+
+export const toMenuItem = (s: ServiceRow, breedPrices: BreedPrice[] = []): MenuItem => ({
   id: s.id,
   name: s.name,
   description: s.description,
   pricing: s.pricing,
   price: s.price_cents,
   sizePrices: { small: s.small_price_cents, medium: s.medium_price_cents, large: s.large_price_cents, xlarge: s.xlarge_price_cents },
+  breedPrices: Object.fromEntries(breedPrices.map((b) => [breedKey(b.breed), b.price_cents])),
   durationMinutes: s.duration_minutes,
 });
 
-// The menu price for a pet of this size, or null if the size isn't known.
-export const menuPrice = (item: MenuItem, size: PetSize | null | "") =>
-  item.pricing === "flat" ? item.price : size ? item.sizePrices[size] : null;
+// The breed price if the salon set one for this pet's breed.
+export const breedPrice = (item: MenuItem, breed?: string | null) =>
+  breed ? item.breedPrices[breedKey(breed)] ?? null : null;
+
+// The menu price for this pet: breed price, else size price, else flat.
+// Null when it's priced by size and the size isn't known.
+export const menuPrice = (item: MenuItem, size: PetSize | null | "", breed?: string | null) =>
+  breedPrice(item, breed) ?? (item.pricing === "flat" ? item.price : size ? item.sizePrices[size] : null);
 
 const dollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const wholeDollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });

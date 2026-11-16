@@ -65,6 +65,7 @@ export default async function NewVisitPage({ params }: PageProps<"/clients/[clie
             menu={menu}
             suggestedSize={lastSize ?? suggestSize(pet.weight_lbs)}
             canEditMenu={canManageServices(workspace.role)}
+            petBreed={pet.breed}
           />
         </section>
       </div>

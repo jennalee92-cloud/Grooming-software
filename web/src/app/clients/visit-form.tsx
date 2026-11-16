@@ -18,9 +18,10 @@ type Props = {
   menu: MenuItem[];
   suggestedSize: PetSize | null;
   canEditMenu: boolean;
+  petBreed: string | null;
 };
 
-export function VisitForm({ clientId, petId, correctsVisitId, locations, team, today, defaults, menu, suggestedSize, canEditMenu }: Props) {
+export function VisitForm({ clientId, petId, correctsVisitId, locations, team, today, defaults, menu, suggestedSize, canEditMenu, petBreed }: Props) {
   const [state, formAction, pending] = useActionState<VisitFormState, FormData>(saveVisit, undefined);
   const v = state?.values ?? defaults;
   const [removing, setRemoving] = useState(v.remove === "on");
@@ -106,7 +107,7 @@ export function VisitForm({ clientId, petId, correctsVisitId, locations, team, t
 
       <fieldset className="form-section" disabled={removing} hidden={removing}>
         <legend><Receipt size={15} /> Services and charges</legend>
-        <VisitServicesPicker menu={menu} values={v} suggestedSize={suggestedSize} canEditMenu={canEditMenu} />
+        <VisitServicesPicker menu={menu} values={v} suggestedSize={suggestedSize} canEditMenu={canEditMenu} petBreed={petBreed} />
         {/* Visits recorded before the menu existed kept services as text. */}
         {defaults.services && (
           <label className="field" htmlFor="visit-services">

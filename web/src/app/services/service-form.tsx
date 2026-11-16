@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CircleAlert, Clock, Tag } from "lucide-react";
+import { CircleAlert, Clock, Dog, Tag } from "lucide-react";
+import { BreedPriceRows } from "./breed-price-rows";
 import { PET_SIZES, SIZE_HINTS, SIZE_LABELS } from "@/lib/service-labels";
 import { saveService, type ServiceFormState } from "./actions";
 
@@ -74,6 +75,12 @@ export function ServiceForm({ serviceId, defaults }: Props) {
           </label>
         )}
         <small className="field-help">Changing a price only affects visits recorded from now on. Past visits keep what was charged.</small>
+      </fieldset>
+
+      <fieldset className="form-section">
+        <legend><Dog size={15} /> Prices by breed <em className="field-optional">optional</em></legend>
+        <small className="field-help">A breed price replaces the price above for that breed. Pick breeds from the list so they match the pet&apos;s breed exactly; each doodle size can have its own price.</small>
+        <BreedPriceRows values={v} />
       </fieldset>
 
       <button type="submit" className="button-primary invite-submit" disabled={pending}>

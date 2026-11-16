@@ -58,6 +58,7 @@ export default async function CorrectVisitPage({ params }: PageProps<"/clients/[
               menu={menu}
               suggestedSize={suggestSize(visit.weight_lbs ?? pet.weight_lbs)}
               canEditMenu={canManageServices(workspace.role)}
+            petBreed={pet.breed}
             />
           ) : (
             <p className="team-empty">This visit was recorded at a location you don&apos;t work at, so it can only be corrected by an owner or admin.</p>

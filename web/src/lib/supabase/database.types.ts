@@ -650,6 +650,51 @@ export type Database = {
           },
         ]
       }
+      service_breed_prices: {
+        Row: {
+          breed: string
+          created_at: string
+          id: string
+          organization_id: string
+          price_cents: number
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          breed: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          price_cents: number
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          breed?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          price_cents?: number
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_breed_prices_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_breed_prices_organization_id_service_id_fkey"
+            columns: ["organization_id", "service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       services: {
         Row: {
           created_at: string
@@ -925,6 +970,10 @@ export type Database = {
       }
       set_pet_archived: {
         Args: { p_archived: boolean; p_pet_id: string }
+        Returns: undefined
+      }
+      set_service_breed_prices: {
+        Args: { p_prices: Json; p_service_id: string }
         Returns: undefined
       }
       team_directory: {

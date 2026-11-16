@@ -17,7 +17,7 @@ export const instant = false;
 export default async function ServicesPage({ searchParams }: PageProps<"/services">) {
   const workspace = await requireWorkspace();
   const { saved, added } = await searchParams;
-  const { active, retired } = await getServices(workspace);
+  const { active, retired, breedPrices } = await getServices(workspace);
   const canManage = canManageServices(workspace.role);
 
   return (
@@ -64,6 +64,14 @@ export default async function ServicesPage({ searchParams }: PageProps<"/service
                       <strong>{s.name}</strong>
                       {s.description && <small>{s.description}</small>}
                       {s.duration_minutes && <small><Clock size={12} /> {durationLabel(s.duration_minutes)}</small>}
+                      {(breedPrices.get(s.id)?.length ?? 0) > 0 && (
+                        <details className="breed-price-summary">
+                          <summary>{breedPrices.get(s.id)!.length} breed {breedPrices.get(s.id)!.length === 1 ? "price" : "prices"}</summary>
+                          <dl>
+                            {breedPrices.get(s.id)!.map((b) => <div key={b.breed}><dt>{b.breed}</dt><dd>{money(b.price_cents)}</dd></div>)}
+                          </dl>
+                        </details>
+                      )}
                     </div>
                     <div className="service-price">
                       {item.pricing === "flat" ? (

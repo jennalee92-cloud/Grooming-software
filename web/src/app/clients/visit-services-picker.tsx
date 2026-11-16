@@ -8,6 +8,7 @@ import {
   PET_SIZES,
   SIZE_HINTS,
   SIZE_LABELS,
+  breedPrice,
   menuPrice,
   money,
   moneyInput,
@@ -21,6 +22,7 @@ type Props = {
   values: Record<string, string>;
   suggestedSize: PetSize | null;
   canEditMenu: boolean;
+  petBreed: string | null;
 };
 
 // price === null means "use the menu price for the chosen size".
@@ -31,7 +33,7 @@ const asSize = (s: string | undefined): PetSize | "" => (PET_SIZES.includes(s as
 
 // The services part of the visit form: pet size, menu picks with prices
 // that follow the size (and can be changed), extra charges, and a total.
-export function VisitServicesPicker({ menu, values: v, suggestedSize, canEditMenu }: Props) {
+export function VisitServicesPicker({ menu, values: v, suggestedSize, canEditMenu, petBreed }: Props) {
   // A new visit starts from the size suggested by the pet's weight; a
   // correction or a rejected form starts from what was entered.
   const initialSize = v.petSize === undefined ? suggestedSize ?? "" : asSize(v.petSize);
@@ -40,7 +42,7 @@ export function VisitServicesPicker({ menu, values: v, suggestedSize, canEditMen
   const [picks, setPicks] = useState<Record<string, Pick>>(() =>
     Object.fromEntries(menu.map((item) => {
       const saved = v[`price_${item.id}`];
-      const listed = moneyInput(menuPrice(item, initialSize));
+      const listed = moneyInput(menuPrice(item, initialSize, petBreed));
       return [item.id, { on: v[`svc_${item.id}`] === "on", price: saved === undefined || saved === listed ? null : saved }];
     })),
   );
@@ -57,7 +59,7 @@ export function VisitServicesPicker({ menu, values: v, suggestedSize, canEditMen
   const [nextKey, setNextKey] = useState(MAX_EXTRAS);
 
   const update = (id: string, change: Partial<Pick>) => setPicks((p) => ({ ...p, [id]: { ...p[id], ...change } }));
-  const shownPrice = (item: MenuItem) => picks[item.id]?.price ?? moneyInput(menuPrice(item, size));
+  const shownPrice = (item: MenuItem) => picks[item.id]?.price ?? moneyInput(menuPrice(item, size, petBreed));
 
   const amounts = [
     ...menu.filter((item) => picks[item.id]?.on).map((item) => parseMoney(shownPrice(item))),
@@ -88,7 +90,8 @@ export function VisitServicesPicker({ menu, values: v, suggestedSize, canEditMen
         <ul className="service-picks" aria-label="Services from the menu">
           {menu.map((item) => {
             const pick = picks[item.id];
-            const listed = menuPrice(item, size);
+            const listed = menuPrice(item, size, petBreed);
+            const byBreed = breedPrice(item, petBreed) !== null;
             return (
               <li key={item.id} className={pick?.on ? "is-on" : undefined}>
                 <label className="service-pick">
@@ -96,7 +99,7 @@ export function VisitServicesPicker({ menu, values: v, suggestedSize, canEditMen
                     onChange={(e) => update(item.id, { on: e.target.checked })} />
                   <span>
                     <strong>{item.name}</strong>
-                    <small>{listed === null ? "Priced by size, choose the size above" : money(listed)}</small>
+                    <small>{listed === null ? "Priced by size, choose the size above" : byBreed ? `${money(listed)} · ${petBreed} price` : money(listed)}</small>
                   </span>
                 </label>
                 {pick?.on && (

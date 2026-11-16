@@ -443,6 +443,21 @@ h1 em { color: #ac6d58; font-weight: 400; }
 .visit-charges td:last-child { color: var(--forest-deep); font-weight: 650; text-align: right; white-space: nowrap; }
 .visit-charges s { margin-right: 4px; color: #a1a9a2; font-weight: 500; }
 .visit-charges tfoot th, .visit-charges tfoot td { border-top: 1px solid #e5e3da; padding-top: 6px; font-weight: 750; }
+/* ---------- Breed prices ---------- */
+.breed-prices { display: grid; gap: 10px; justify-items: start; }
+.breed-price-list { display: grid; gap: 8px; width: 100%; margin: 0; padding: 0; list-style: none; }
+.breed-price-list li { display: flex; align-items: center; gap: 8px; }
+.breed-price-list .breed-picker { flex: 1 1 auto; min-width: 0; }
+.breed-price-list .breed-picker input { width: 100%; min-height: 40px; border: 1px solid #d9ddd2; border-radius: 7px; background: #fffefa; padding: 0 40px 0 12px; color: var(--ink); font: inherit; font-size: 14.5px; }
+.breed-price-list .breed-picker input:focus { outline: none; border-color: var(--forest); box-shadow: 0 0 0 3px #dce7dc; }
+.breed-price-list .breed-toggle { height: 40px; }
+.breed-price-summary { margin-top: 4px; font-size: 12.5px; }
+.breed-price-summary summary { color: var(--forest); cursor: pointer; font-weight: 650; }
+.breed-price-summary dl { display: grid; gap: 2px; margin: 6px 0 0; }
+.breed-price-summary dl div { display: flex; justify-content: space-between; gap: 12px; max-width: 320px; }
+.breed-price-summary dt { color: #5f6b63; }
+.breed-price-summary dd { margin: 0; color: var(--forest-deep); font-weight: 650; }
+
 /* ---------- Age fields ---------- */
 .age-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .age-part { position: relative; display: block; }
