@@ -17,6 +17,7 @@ import { AppShell } from "@/components/app-shell";
 import { getMyInvitations, requireWorkspace } from "@/lib/dal";
 import { countActivePets } from "@/lib/clients";
 import { canManageTeam } from "@/lib/roles";
+import { getChecklistsAt } from "@/lib/checklists";
 import { getVaccinesDue } from "@/lib/vaccinations";
 import { DUE_SOON_DAYS, vaccineDate, vaccineStatus } from "@/lib/vaccine-labels";
 import { countVisitsOn, todayIn } from "@/lib/visits";
@@ -29,14 +30,19 @@ export default async function Home() {
   const workspace = await requireWorkspace();
   const manager = canManageTeam(workspace.role);
   const today = todayIn(workspace.locations[0]?.timezone);
-  const [petCount, visitsToday, invitationsForMe, team, openInvites, vaccinesDue] = await Promise.all([
+  const firstLocation = workspace.locations[0];
+  const [petCount, visitsToday, invitationsForMe, team, openInvites, vaccinesDue, checklistsToday] = await Promise.all([
     countActivePets(workspace),
     countVisitsOn(workspace, today),
     getMyInvitations(),
     manager ? getTeam(workspace) : Promise.resolve([]),
     manager ? getOpenInvitations(workspace) : Promise.resolve([]),
     getVaccinesDue(workspace),
+    firstLocation ? getChecklistsAt(workspace, firstLocation.id, today) : Promise.resolve({ lists: [], ticks: new Map() }),
   ]);
+  const dailyLists = checklistsToday.lists.filter((c) => c.frequency === "daily");
+  const dailyTasks = dailyLists.flatMap((c) => c.tasks);
+  const dailyDone = dailyTasks.filter((t) => checklistsToday.ticks.has(t.id)).length;
 
   const firstName = workspace.displayName?.split(" ")[0];
   const locationCount = workspace.locations.length;
@@ -99,6 +105,11 @@ export default async function Home() {
             <article className="metric-card metric-card-sage"><div className="metric-label"><MapPin size={16} /><span>{manager ? "Locations" : "Your locations"}</span></div><div className="metric-value">{locationCount}</div><div className="metric-foot">{workspace.locations.map((l) => l.name).join(" · ")}</div></article>
             <Link href="/clients" className="metric-card metric-card-rose metric-link"><div className="metric-label"><Dog size={16} /><span>Pets on file</span></div><div className="metric-value">{petCount}</div><div className="metric-foot">{petCount === 0 ? "Add your first client →" : "Open clients & pets →"}</div></Link>
             <article className="metric-card metric-card-lime"><div className="metric-label"><CalendarDays size={16} /><span>Today&apos;s visits</span></div><div className="metric-value">{visitsToday}</div><div className="metric-foot">{visitsToday === 0 ? "Record visits from a pet's profile" : "Recorded so far today"}</div></article>
+            <Link href="/checklists" className="metric-card metric-card-sage metric-link">
+              <div className="metric-label"><ClipboardCheck size={16} /><span>Today&apos;s checklists</span></div>
+              <div className="metric-value">{dailyTasks.length === 0 ? "–" : `${dailyDone}/${dailyTasks.length}`}</div>
+              <div className="metric-foot">{dailyTasks.length === 0 ? "Set up daily checklists →" : dailyDone === dailyTasks.length ? `All done at ${firstLocation?.name} ✓` : `Tasks done at ${firstLocation?.name} →`}</div>
+            </Link>
           </div>
         </section>
 

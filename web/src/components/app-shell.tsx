@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowUpRight,
+  CalendarDays,
   ChevronsUpDown,
   ClipboardCheck,
   Dog,
@@ -18,7 +19,7 @@ import { getWorkspaces, ROLE_LABELS, type Workspace } from "@/lib/dal";
 
 type Props = {
   workspace: Workspace;
-  active: "overview" | "clients" | "services" | "team" | "setup";
+  active: "overview" | "clients" | "checklists" | "services" | "team" | "setup";
   crumb: string;
   topbar?: React.ReactNode;
   children: React.ReactNode;
@@ -83,11 +84,12 @@ export async function AppShell({ workspace, active, crumb, topbar, children }: P
           <span className="nav-caption">Workspace</span>
           {navLink("overview", "/", <LayoutDashboard size={18} />, "Overview")}
           {navLink("clients", "/clients", <Dog size={18} />, "Clients & pets")}
+          {navLink("checklists", "/checklists", <ClipboardCheck size={18} />, "Checklists")}
           {navLink("services", "/services", <Tag size={18} />, "Services & prices")}
           {navLink("team", "/team", <Users size={18} />, "Team")}
           {navLink("setup", "/setup", <Settings2 size={18} />, "Workspace setup")}
           <span className="nav-caption nav-caption-spaced">Coming into focus</span>
-          <div className="nav-preview"><ClipboardCheck size={18} /><span>Daily operations</span></div>
+          <div className="nav-preview"><CalendarDays size={18} /><span>Appointments</span></div>
           <div className="nav-preview"><FileText size={18} /><span>Resources</span></div>
         </nav>
 

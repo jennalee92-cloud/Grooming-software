@@ -83,6 +83,169 @@ export type Database = {
           },
         ]
       }
+      checklist_checks: {
+        Row: {
+          checked_at: string
+          checked_by: string | null
+          id: string
+          location_id: string
+          note: string | null
+          organization_id: string
+          period_start: string
+          task_id: string
+        }
+        Insert: {
+          checked_at?: string
+          checked_by?: string | null
+          id?: string
+          location_id: string
+          note?: string | null
+          organization_id: string
+          period_start: string
+          task_id: string
+        }
+        Update: {
+          checked_at?: string
+          checked_by?: string | null
+          id?: string
+          location_id?: string
+          note?: string | null
+          organization_id?: string
+          period_start?: string
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_checks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_checks_organization_id_location_id_fkey"
+            columns: ["organization_id", "location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "checklist_checks_organization_id_task_id_fkey"
+            columns: ["organization_id", "task_id"]
+            isOneToOne: false
+            referencedRelation: "checklist_tasks"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
+      checklist_tasks: {
+        Row: {
+          archived_at: string | null
+          checklist_id: string
+          created_at: string
+          details: string | null
+          id: string
+          label: string
+          organization_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          checklist_id: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          label: string
+          organization_id: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          checklist_id?: string
+          created_at?: string
+          details?: string | null
+          id?: string
+          label?: string
+          organization_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_tasks_organization_id_checklist_id_fkey"
+            columns: ["organization_id", "checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "checklist_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklists: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          frequency: Database["public"]["Enums"]["checklist_frequency"]
+          id: string
+          location_id: string | null
+          name: string
+          organization_id: string
+          position: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency?: Database["public"]["Enums"]["checklist_frequency"]
+          id?: string
+          location_id?: string | null
+          name: string
+          organization_id: string
+          position?: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          frequency?: Database["public"]["Enums"]["checklist_frequency"]
+          id?: string
+          location_id?: string | null
+          name?: string
+          organization_id?: string
+          position?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklists_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklists_organization_id_location_id_fkey"
+            columns: ["organization_id", "location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -1008,6 +1171,18 @@ export type Database = {
         Args: { p_invitation_id: string }
         Returns: undefined
       }
+      save_checklist: {
+        Args: {
+          p_checklist_id: string
+          p_description: string
+          p_frequency: Database["public"]["Enums"]["checklist_frequency"]
+          p_location_id: string
+          p_name: string
+          p_organization_id: string
+          p_tasks: Json
+        }
+        Returns: string
+      }
       search_clients: {
         Args: {
           p_include_archived?: boolean
@@ -1077,6 +1252,7 @@ export type Database = {
       }
     }
     Enums: {
+      checklist_frequency: "daily" | "weekly" | "monthly"
       contact_method: "call" | "text" | "email"
       member_role:
         | "owner"
@@ -1222,6 +1398,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      checklist_frequency: ["daily", "weekly", "monthly"],
       contact_method: ["call", "text", "email"],
       member_role: [
         "owner",

@@ -34,6 +34,9 @@ export const canArchiveClients = (role: MemberRole) => role === "owner" || role 
 // Mirrors the database rules for the service menu.
 export const canManageServices = (role: MemberRole) => role === "owner" || role === "admin" || role === "manager";
 
+// Mirrors the database rules for checklists (everyone can tick tasks).
+export const canManageChecklists = canManageServices;
+
 // Roles the caller may hand out. Only the owner can grant admin.
 export const assignableRoles = (callerRole: MemberRole) =>
   INVITABLE_ROLES.filter((r) => r !== "admin" || callerRole === "owner");
