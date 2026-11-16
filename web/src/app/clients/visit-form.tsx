@@ -1,7 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { CircleAlert, History, Receipt, Scissors } from "lucide-react";
+import { Camera, CircleAlert, History, Receipt, Scissors } from "lucide-react";
+import { PhotoInput } from "@/components/photo-input";
 import { BEHAVIOR_LABELS, type VisitBehavior } from "@/lib/client-labels";
 import type { MenuItem, PetSize } from "@/lib/service-labels";
 import { saveVisit, type VisitFormState } from "./visit-actions";
@@ -116,6 +117,17 @@ export function VisitForm({ clientId, petId, correctsVisitId, locations, team, t
           </label>
         )}
       </fieldset>
+
+      {!correcting && (
+        <fieldset className="form-section">
+          <legend><Camera size={15} /> Photos <em className="field-optional">optional</em></legend>
+          <div className="field-row">
+            <PhotoInput id="visit-before" name="beforePhotos" label="Before" />
+            <PhotoInput id="visit-after" name="afterPhotos" label="After" />
+          </div>
+          <small className="field-help">On a phone you can take them with the camera. You can also add photos to this visit later.{state?.error && " If you'd chosen photos, choose them again."}</small>
+        </fieldset>
+      )}
 
       {/* Removing still sends the original details so the record stays complete. */}
       {removing && (

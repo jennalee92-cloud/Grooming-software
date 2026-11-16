@@ -493,6 +493,21 @@ h1 em { color: #ac6d58; font-weight: 400; }
 .vet-caption { overflow: hidden; color: #6f7a72; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .vet-remove { justify-self: start; color: #a04d38; font-size: 12px; }
 
+/* ---------- Visit photos ---------- */
+.photo-field .file-input { width: 100%; }
+.photo-busy { display: inline-flex; align-items: center; gap: 5px; }
+.spin { animation: spin 900ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.photo-previews { display: flex; flex-wrap: wrap; gap: 6px; }
+.photo-previews img { width: 64px; height: 64px; border-radius: 6px; object-fit: cover; }
+.visit-photos { display: grid; gap: 8px; margin-top: 10px; }
+.visit-photo-group ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; }
+.visit-photo-group li { display: grid; gap: 2px; justify-items: start; }
+.visit-photo-label { color: #8a938b; font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.visit-photo { display: block; overflow: hidden; width: 96px; height: 96px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.visit-photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 160ms ease; }
+.visit-photo:hover img { transform: scale(1.04); }
+
 /* ---------- Vaccinations ---------- */
 .caution-banner-urgent { border-color: #d64545; border-left-width: 5px; background: #fdecec; color: #b42318; }
 .caution-banner-urgent strong { color: #b42318; }

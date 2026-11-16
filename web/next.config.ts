@@ -5,9 +5,11 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   experimental: {
-    // Vet record photos are uploaded through server actions (10 MB per file).
-    serverActions: { bodySizeLimit: "11mb" },
-    proxyClientMaxBodySize: "11mb",
+    // Vet records and visit photos are uploaded through server actions.
+    // Photos are shrunk in the browser first, but phones that can't shrink
+    // (e.g. HEIC outside Safari) may send a few full-size files at once.
+    serverActions: { bodySizeLimit: "40mb" },
+    proxyClientMaxBodySize: "40mb",
   },
   turbopack: {
     rules: {

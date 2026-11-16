@@ -1,6 +1,8 @@
 "use server";
 
+import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
+import { photoFiles, storeVisitPhotos, type PhotoKind } from "@/lib/visit-photos";
 import type { VisitBehavior } from "@/lib/client-labels";
 import { requireWorkspace } from "@/lib/dal";
 import { UUID_PATTERN, userMessage } from "@/lib/db-errors";
@@ -54,6 +56,7 @@ export async function saveVisit(_prev: VisitFormState, fd: FormData): Promise<Vi
   const removing = correctsVisitId !== "" && fd.get("remove") === "on";
 
   let args;
+  let photos: { before: File[]; after: File[] } = { before: [], after: [] };
   try {
     if (!UUID_PATTERN.test(clientId) || !UUID_PATTERN.test(petId) || (correctsVisitId && !UUID_PATTERN.test(correctsVisitId))) {
       throw new Invalid("That visit isn't valid.");
@@ -72,6 +75,7 @@ export async function saveVisit(_prev: VisitFormState, fd: FormData): Promise<Vi
 
     const lines = removing ? [] : parseLines(fd);
     if (lines.length > 30) throw new Invalid("A visit can have at most 30 services and charges.");
+    photos = removing ? { before: [], after: [] } : { before: photoFiles(fd, "beforePhotos"), after: photoFiles(fd, "afterPhotos") };
 
     args = {
       p_organization_id: workspace.organizationId,
@@ -96,12 +100,54 @@ export async function saveVisit(_prev: VisitFormState, fd: FormData): Promise<Vi
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("record_visit", args);
+  const { data: visitId, error } = await supabase.rpc("record_visit", args);
   if (error) {
     if (error.code === "23505") return { error: "Someone else corrected this visit a moment ago. Go back to the pet's history to see the latest version.", values };
     return { error: userMessage(error), values };
   }
 
+  const failed =
+    (await storeVisitPhotos(workspace, petId, visitId, "before", photos.before)) +
+    (await storeVisitPhotos(workspace, petId, visitId, "after", photos.after));
+
   const outcome = removing ? "removed" : correctsVisitId ? "corrected" : "added";
-  redirect(`/clients/${clientId}/pets/${petId}?visit=${outcome}#history`);
+  redirect(`/clients/${clientId}/pets/${petId}?visit=${outcome}${failed ? `&photos=${failed}` : ""}#history`);
+}
+
+export type PhotoFormState = { error?: string } | undefined;
+const KINDS: PhotoKind[] = ["before", "after", "other"];
+
+// Adds photos to a visit that's already recorded.
+export async function addVisitPhotos(_prev: PhotoFormState, fd: FormData): Promise<PhotoFormState> {
+  const workspace = await requireWorkspace();
+  const clientId = text(fd, "clientId");
+  const petId = text(fd, "petId");
+  const visitId = text(fd, "visitId");
+  let files: File[];
+  try {
+    if (![clientId, petId, visitId].every((id) => UUID_PATTERN.test(id))) throw new Invalid("That visit isn't valid.");
+    files = photoFiles(fd, "photos");
+    if (files.length === 0) throw new Invalid("Choose at least one photo.");
+  } catch (e) {
+    if (e instanceof Invalid) return { error: e.message };
+    throw e;
+  }
+  const kind = KINDS.includes(text(fd, "kind") as PhotoKind) ? (text(fd, "kind") as PhotoKind) : "other";
+
+  const failed = await storeVisitPhotos(workspace, petId, visitId, kind, files);
+  if (failed === files.length) return { error: "The photos couldn't be uploaded. Check your connection and try again." };
+  redirect(`/clients/${clientId}/pets/${petId}?visit=photos${failed ? `&photos=${failed}` : ""}#history`);
+}
+
+export async function removeVisitPhoto(_prev: PhotoFormState, fd: FormData): Promise<PhotoFormState> {
+  const workspace = await requireWorkspace();
+  const photoId = text(fd, "photoId");
+  if (!UUID_PATTERN.test(photoId)) return { error: "That photo isn't valid." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("visit_photos").update({ removed_at: new Date().toISOString() })
+    .eq("id", photoId).eq("organization_id", workspace.organizationId).select("id");
+  if (error) return { error: userMessage(error) };
+  if (data.length === 0) return { error: "Only the person who added a photo, or a manager, can remove it." };
+  refresh();
+  return undefined;
 }

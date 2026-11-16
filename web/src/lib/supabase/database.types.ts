@@ -821,6 +821,70 @@ export type Database = {
           },
         ]
       }
+      visit_photos: {
+        Row: {
+          content_type: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["visit_photo_kind"]
+          organization_id: string
+          pet_id: string
+          removed_at: string | null
+          size_bytes: number
+          storage_path: string
+          uploaded_by: string | null
+          visit_id: string
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["visit_photo_kind"]
+          organization_id: string
+          pet_id: string
+          removed_at?: string | null
+          size_bytes: number
+          storage_path: string
+          uploaded_by?: string | null
+          visit_id: string
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["visit_photo_kind"]
+          organization_id?: string
+          pet_id?: string
+          removed_at?: string | null
+          size_bytes?: number
+          storage_path?: string
+          uploaded_by?: string | null
+          visit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_photos_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_photos_organization_id_pet_id_fkey"
+            columns: ["organization_id", "pet_id"]
+            isOneToOne: false
+            referencedRelation: "pets"
+            referencedColumns: ["organization_id", "id"]
+          },
+          {
+            foreignKeyName: "visit_photos_organization_id_visit_id_fkey"
+            columns: ["organization_id", "visit_id"]
+            isOneToOne: false
+            referencedRelation: "grooming_visits"
+            referencedColumns: ["organization_id", "id"]
+          },
+        ]
+      }
       visit_services: {
         Row: {
           created_at: string
@@ -1027,6 +1091,7 @@ export type Database = {
       pet_species: "dog" | "cat" | "other"
       service_pricing: "flat" | "by_size"
       visit_behavior: "great" | "good" | "some_trouble" | "difficult"
+      visit_photo_kind: "before" | "after" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1172,6 +1237,7 @@ export const Constants = {
       pet_species: ["dog", "cat", "other"],
       service_pricing: ["flat", "by_size"],
       visit_behavior: ["great", "good", "some_trouble", "difficult"],
+      visit_photo_kind: ["before", "after", "other"],
     },
   },
 } as const
